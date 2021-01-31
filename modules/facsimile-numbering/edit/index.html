@@ -1,0 +1,123 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Corpus filologic și lingvistic românesc</title>
+        <meta charset="utf-8"/>
+		<meta name="author" content="Claudius Teodorescu"/>		
+		
+        <script type="module" src="/modules/teian-editor/teian-editor.js" defer="true"></script> 
+        <script type="module" src="/modules/kuberam-login-element/kuberam-login-element.js" defer="true"></script>        
+        <script type="module" src="/modules/solirom-infinite-loading-bar/solirom-infinite-loading-bar.js" defer="true"></script>
+        <script type="module" src="templates.js" defer="true"></script>
+
+        <!-- Awesomplete -->
+        <link rel="stylesheet" href="/modules/awesomplete/awesomplete.css"/>
+        <script src="/modules/awesomplete/awesomplete.min.js" defer="true"></script>
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" />
+        
+        <script type="module" src="index.js" defer="true"></script>        
+        <link rel="stylesheet" href="index.css"/>  
+    </head>
+    <body>
+        <!--
+            <h1>Vă rog să nu lucrați până la data de 04.12, orele 9:00, deoarece baza de date este în curs de întreținere și nu se vor salva intrările.</h1>
+        <h1>Lucrez la ISER.</h1>            
+        --> 
+        <div id="content-container">
+            <h2 class="box1">Corpus filologic și lingvistic românesc</h2>
+            <kuberam-login-element class="box2">
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="alinamihaelabursuc@gmail.com">Alina Mihaela Bursuc</option>
+                        <option value="marius.clim@gmail.com">Marius Radu Clim</option>                        
+                        <option value="mioaradragomir2013@gmail.com">Mioara Dragomir</option>                          
+                        <option value="florescu24cristina@gmail.com">Cristina Florescu</option>
+                        <option value="gabihaja@gmail.com">Gabriela Haja</option>
+                        <option value="lauramanea2014@gmail.com">Laura Mona Manea</option>                        
+                        <option value="isabelle.tamba@gmail.com">Isabelle Tamba</option>
+                        <option value="claudius.teodorescu@gmail.com">Claudius-Marian Teodorescu</option>
+                    </select>
+            </kuberam-login-element> 
+            <div class="box3">
+                <input id="search-string" />
+            </div>            
+            <div class="box8">
+                <label for="collection">Colecție:</label>
+                <select id="collection">
+                    <option value="all"></option>
+                    <option value="CLRE">CLRE</option>
+                    <option value="DLR2">DLR2</option>
+                </select>                
+            </div>             
+            <div class="box4">
+            </div>
+            <div id="text-tools" style="display: none;">
+                <label for="section-selector-container">Secțiuni carte:</label>
+                <div id="section-selector-container">
+                    <input id="front-section" type="radio" class="section-selector-button" name="sectionSelectorButton" value="front"/>
+                    <label for="front-section">p. anterioare</label>
+                    <input id="body-section" type="radio" class="section-selector-button" name="sectionSelectorButton" value="body" checked="true"/>
+                    <label for="body-section">p. text</label>
+                    <input id="back-section" type="radio" class="section-selector-button" name="sectionSelectorButton" value="back"/>
+                    <label for="back-section">p. posterioare</label>
+                </div>                
+            </div>  
+            <div class="box6"> 
+                <div>
+                    <button id="add-scan" title="Adăugare scan" disabled="true">&#xf15b;</button>
+                    <button id="replace-scan" title="Înlocuire scan" disabled="true">&#xf0ea;</button>
+                    <button id="delete-scan" title="Ștergere scan" disabled="true">&#xf2ed;</button>
+                    <solirom-infinite-loading-bar id="image-viewer-loading-bar" style="display:none"></solirom-infinite-loading-bar>
+                    <input type="file" id="add-scan-fileupload" multiple="true" accept="image/png" style="display:none"/>
+                    <input type="file" id="replace-scan-fileupload" accept="image/png" style="display:none"/>
+                </div>            
+                <img src="" />
+            </div>
+            <div id="editor-container"> 
+                <div id="numbering-editor">
+                    <teian-editor style="width: 95%; height: 950px; overflow: scroll;">
+                        <button slot="toolbar" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                        <label for="volume-selector" slot="toolbar">Volum</label>
+                        <select id="volume-selector" slot="toolbar"></select>
+                        <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
+                    </teian-editor>                
+                </div>
+                <div id="transcription-editor">
+                    <div id="transcription-editor-master">
+                        <div id="transcription-editor-master-toolbar">
+                            <button slot="toolbar" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                            <button slot="toolbar" id="switch-to-page-numbering-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
+                        </div>
+                        <div id="transcription-editor-master-content">
+                            <a href="#">intrare 1</a>
+                            <a href="#">intrare 2</a>
+                            <a href="#">intrare 3</a>
+                            <a href="#">intrare 4</a>
+                            <a href="#">intrare 5</a>
+                            <a href="#">intrare 6</a>
+                            <a href="#">intrare 7</a>
+                            <a href="#">intrare 8</a>
+                            <a href="#">intrare 9</a>
+                            <a href="#">intrare 10</a>
+                            <a href="#">intrare 11</a>
+                            <a href="#">intrare 12</a>
+                            <a href="#">intrare 13</a>
+                            <a href="#">intrare 14</a>
+                            <a href="#">intrare 15</a>
+                            <a href="#">intrare 16</a>
+                            <a href="#">intrare 17</a>
+                            <a href="#">intrare 18</a>
+                            <a href="#">intrare 19</a>
+                            <a href="#">intrare 20</a>
+                            <a href="#">intrare 21</a>
+                            <a href="#">intrare 22</a>
+                        </div>                        
+                    </div>
+                    <div id="transcription-editor-detail">
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </body>
+</html>

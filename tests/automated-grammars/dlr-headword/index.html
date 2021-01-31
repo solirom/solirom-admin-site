@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Gramatică automată pentru categorii gramaticale</title>
+        <meta charset="utf-8"/>
+        <script type="module" src="index.js"></script>
+        <script type="module" src="/modules/solirom-automated-grammar/solirom-automated-grammar.js"></script>
+        <style type="text/css">
+            html, body {
+                margin: 0; padding: 0;
+                font-size: 14pt;
+                font-family: sans-serif;
+                height: 100%;
+            }
+            #main {
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+                height: 100%;
+                display: table;
+            }
+            #output-1, #output-2 {
+                font-size: 10px; 
+                width: 600px;
+                min-height: 70px;           
+            }
+        </style>        
+    </head>
+    <body>
+        <h2>Gramatică automată pentru categorii gramaticale</h2>
+        <div id="main">
+            <solirom-automated-grammar id="input-1" grammar="headwordGrammar" type="input" placeholder="Introduceți o categorie gramaticală." style="width: 600px;"></solirom-automated-grammar>
+            <br/>
+            <div id="output-1"></div>
+            <solirom-automated-grammar id="input-2" grammar="headwordGrammar" type="input" placeholder="Introduceți o categorie gramaticală." style="width: 600px;"></solirom-automated-grammar>
+            <br/>
+            <div id="output-2"></div>            
+        </div>        
+    </body>
+</html>

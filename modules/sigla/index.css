@@ -1,0 +1,48 @@
+table.report {
+  border-collapse: collapse;
+  width: 100%;
+}
+table.report th {
+  background: #ccc;
+}
+
+table.report th, table.report td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+table.report td:nth-child(1) {
+    width: 5%;
+}
+
+table.report td:nth-child(3) {
+    width: 35%;
+}
+
+table.report td:nth-child(3) > *, #dlr-to-dlri-sigla-table td:nth-child(7) > * {
+    display: inline;
+}
+
+button, .clipboard-button {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+.btn {
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+.btn:focus {
+    border: none;
+}
+
+#dlr-to-dlri-sigla-table td:nth-child(7) {
+    width: 30%;
+}
+
+#simple-search-container button {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;                
+}

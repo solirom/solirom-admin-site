@@ -1,0 +1,50 @@
+html {
+    padding: 10px;
+}
+
+header > * {
+    display: inline-block;
+}
+
+#score-calculator-table, #summary-table {
+  border-collapse: collapse;
+  width: 90%;
+}
+th {
+  background: #cccccc;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+#score-calculator-table td:nth-child(3) {
+    width: 44%;
+}
+
+#score-calculator-table td:nth-child(4) {
+    width: 10%;
+}
+
+#score-calculator-table td button {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    display: inline-block;
+}
+                
+#score-calculator-table th[scope = 'row'] {
+    background: #ffffff;
+}
+
+td > div:only-child > button[name = 'deleteButton'] {
+    display: none !important;
+}
+
+.section {
+    text-align: center;    
+}
+
+#summary-table tbody tr:nth-child(1) td:nth-child(2) {
+    text-align: center;    
+}

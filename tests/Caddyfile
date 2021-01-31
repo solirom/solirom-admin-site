@@ -1,0 +1,10 @@
+
+solirom.ro {
+    root '/var/web/solirom-site'
+    tls claudius.teodorescu@gmail.com
+    reverse_proxy /data localhost:5050
+    reverse_proxy /api localhost:8095
+    reverse_proxy /exist localhost:8080
+}
+
+# curl localhost:2019/load -X POST -H "Content-Type: application/json" -d @caddy.json

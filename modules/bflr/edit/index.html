@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>BFLR - Bibliografia filologică și lingvistică românească</title>
+        <meta charset="utf-8"/>
+		<meta name="author" content="Claudius Teodorescu"/>		
+		
+        <script type="module" src="../../teian-editor/teian-editor.js" defer="true">/**/</script> 
+        <script type="module" src="../../kuberam-login-element/kuberam-login-element.js" defer="true">/**/</script>        
+        <script type="module" src="bflr-mods.js" defer="true">/**/</script>
+        <script src="index.js" defer="true">/**/</script>        
+        <link rel="stylesheet" href="index.css"/>  
+        
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"/>
+    </head>
+    <body>
+        <div id="content-container">
+            <div id="header">
+                <kuberam-login-element>
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="victor_celac@yahoo.com">Celac Victor</option>
+                        <option value="gabihaja@gmail.com">Haja Gabriela</option>
+                        <option value="isabelle.tamba@gmail.com">Tamba Isabelle</option>
+                        <option value="claudius.teodorescu@gmail.com">Teodorescu Claudius</option>
+                    </select>
+                </kuberam-login-element>            
+                <h2 class="header">Bibliografia filologică și lingvistică românească</h2>
+            </div>
+            <!-- <h1>Vă rugăm să nu lucrați până la data de 30.09, orele 21:00, deoarece baza de date este în curs de întreținere și nu se vor salva intrările.</h1> -->
+            <div id="search-container">
+                <div id="simple-search-tab">
+                    <input id="search-string" placeholder="" value="" maxlength="50" autocomplete="off" type="text"/>
+                    <button id="search-button">&#xf002;</button>
+                </div>
+                <div>
+                    <label for="entries-counter">Număr de intrări:</label>
+                    <output id="entries-counter">0</output>
+                </div>                
+                <div id="search-result"></div>
+            </div>
+            <teian-editor>
+                <button slot="toolbar" onclick="solirom.actions.newFile()" id="new-button" title="Adăugare document">&#xf15b;</button>
+                <button slot="toolbar" onclick="solirom.actions.saveFile()" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                <button slot="toolbar" onclick="solirom.actions.deleteFile()" id="delete-button" title="Ștergere document" disabled="true">&#xf2ed;</button>
+                <button slot="toolbar" onclick="solirom.actions.duplicateFile()" id="duplicate-button" title="Duplicare document" disabled="true">&#xf24d;</button>
+                <button slot="toolbar" onclick="solirom.actions.fileHistory()" id="history-button" title="Istoric versiuni document" disabled="true">&#xf1da;</button>
+                <button slot="toolbar" onclick="solirom.actions.addVolume()" id="volume-button" title="Adăugare volum" disabled="true">&#xf02d;</button>
+            </teian-editor>
+        </div>
+    </body>
+</html>

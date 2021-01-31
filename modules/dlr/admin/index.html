@@ -1,0 +1,69 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Editare intrări în DRL</title>
+        <meta charset="utf-8"/>
+       	<meta name="author" content="Claudius Teodorescu"/>
+        <link rel="stylesheet" href="index.css"/>
+       	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"/> 		
+        
+        <script type="module" src="/modules/teian-editor/teian-editor.js" defer="true"></script>
+        <script type="module" src="/modules/kuberam-login-element/kuberam-login-element.js" defer="true"></script>
+        <script type="module" src="dlr-tei.js" defer="true"></script>
+        <script type="module" src="index.js"></script>		
+    </head>
+    <body>
+        <div id="content-container">
+            <div id="header">
+                <kuberam-login-element>
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="tests">tests</option>
+                        <option value="anghelina.alexandru">Anghelina Alexandru</option>
+                        <option value="Dana-Melania">Bădic Dana-Melania</option>                        
+                        <option value="victor.celac">Celac Victor</option>  
+                        <option value="marius.clim">Clim Marius</option>                                              
+                        <option value="valentinas">Cojocaru Valentina</option>                        
+                        <option value="Catalina.Corbeanu">Corbeanu Ramona Catalina</option>
+                        <option value="garofitad">Dincă Garofița</option>                        
+                        <option value="mioara.dragomir">Dragomir Mioara</option>                        
+                        <option value="cristina.florescu">Florescu Cristina</option>
+                        <option value="Gabriela_Haja">Haja Gabriela</option>
+                        <option value="Lilianah">Hoinărescu Liliana</option>                        
+                        <option value="laura.manea">Manea Laura</option>
+                        <option value="mihaela.marin">Marin Mihaela</option>
+                        <option value="Nicoleta">Mihai Nicoleta</option>                        
+                        <option value="mirceaminica">Minică Mircea</option>                        
+                        <option value="r_nedea">Nedea Raluca-Mihaela</option>
+                        <option value="msmihaelap">Popescu Mihaela</option>                        
+                        <option value="vozduh">Popuşoi Carolina</option>
+                        <option value="FlorinSterian">Sterian Florin</option>                        
+                        <option value="Maria.Stefanescu">Ștefănescu Maria</option>
+                        <option value="isabelle.tamba">Tamba Isabella</option>                        
+                        <option value="FlorinV">Vasilescu Florin</option>                        
+                        <option value="stefania.vulpe">Vulpe Ștefania</option>
+                    </select>
+                </kuberam-login-element>
+                <h2>Editare intrări în DRL</h2>
+            </div>  
+            <div id="search-container">
+                <div id="simple-search-tab">
+                    <input id="search-string" placeholder="" value="" maxlength="50" autocomplete="off" type="text"/>
+                    <button id="search-button">&#xf002;</button>
+                </div>
+                <div>
+                    <label for="entries-counter">Număr de intrări:</label>
+                    <output id="entries-counter">0</output>
+                </div>                
+                <div id="search-result"></div>
+            </div> 
+            <teian-editor>
+        		    <button slot="toolbar" onclick="solirom.file.new()" id="new-button" title="Document nou">&#xf15b;</button>
+        		    <button slot="toolbar" onclick="solirom.file.save()" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+        		    <button slot="toolbar" onclick="solirom.file.delete()" id="delete-button" title="Ștergere document" disabled="true">&#xf2ed;</button>
+        		    <button slot="toolbar" onclick="solirom.file.duplicate()" id="duplicate-button" title="Duplicare document" disabled="true">&#xf24d;</button>
+        		    <button slot="toolbar" onclick="solirom.file.history()" id="history-button" title="Istoric versiuni document" disabled="true">&#xf1da;</button>
+            </teian-editor>
+        </div>
+    </body>
+</html>

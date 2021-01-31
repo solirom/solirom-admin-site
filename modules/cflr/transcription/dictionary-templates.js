@@ -1,0 +1,233 @@
+import solirom from "/modules/solirom/solirom.js";
+import Sortable from '/modules/sortable/sortable.esm.js';
+import * as soliromUtils from "/modules/utils/solirom-utils.js";
+
+solirom.data.templates.transcriptionFile =
+    solirom.actions.html`<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation">
+        <xi:include href="${props => props.href}" xpointer="/1/1" label="${props => props.label}" />
+    </ab>`
+;
+solirom.data.templates.transcriptionReference = 
+    solirom.actions.html`
+        <div class="transcription-reference list-group-item" data-href="${props => props.href}">
+            <div class="drag-handler"></div><div class="transcription-detail">${props => props.label}</div>
+        </div>
+    `;
+solirom.data.templates.entryFile =
+    solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
+        <entry>
+            <form type="headword">
+                <orth n=""/>
+                <stress xml:lang="ro-x-accent-upcase-vowels"/>
+            </form>
+            <form type="lemma"/>
+        </entry>
+        <note>
+            <editor role="transcriber">${props => props.author}</editor>
+            <editor role="reviewer"/>
+        </note>
+    </body>`
+;
+
+export default class TranscriptionEditorComponent extends HTMLElement {
+    constructor() {
+        super();
+        
+        this.attachShadow({mode: 'open'});
+        const shadowRoot = this.shadowRoot;
+        shadowRoot.innerHTML =
+            `
+                <style>
+                    #content, option {
+                        font-family: cursive;
+                        font-size: 12px;
+                    }
+                    #master-content {
+                        background: white;    
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr); 
+                        column-gap: 10px;
+                        row-gap: 5px;
+                        height: 400px;
+                        box-shadow: 0 0 0.5cm rgba(0,0,0,0.5); 
+                        padding: 20px;
+                        overflow: auto; 
+                        margin-bottom: 20px;   
+                    }
+                    .transcription-reference {
+                        width:  300px;
+                        height: 25px;
+                        border-radius: 5px;
+                        display: inline-block;
+                        background-color: #ededeb;
+                    }  
+                    .transcription-reference > div {
+                        displaY: inline-block;
+                        position: relative;
+                        height: 100%;
+                        vertical-align: top;
+                    }                        
+                    .drag-handler {
+                        width: 29px;
+                        border-radius: 5px 0 0 5px;
+                        background: #807e7e url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MiIgaGVpZ2h0PSI0MiI+PGcgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIuOSIgPjxwYXRoIGQ9Ik0xNCAxNS43aDE0LjQiLz48cGF0aCBkPSJNMTQgMjEuNGgxNC40Ii8+PHBhdGggZD0iTTE0IDI3LjFoMTQuNCIvPjwvZz4KPC9zdmc+') no-repeat center;
+                        box-shadow: 0 2px 2px -2px;
+                        cursor: move;
+                    }  
+                    .transcription-detail {
+                        box-sizing: border-box;
+                        padding: 2px;                                                   
+                    } 
+                    .selected-transcription {
+                        background-color: #adacac;                                                   
+                    } 
+                    #detail-content {
+                        background: white;    
+                        height: 400px;
+                        box-shadow: 0 0 0.5cm rgba(0,0,0,0.5); 
+                        padding: 20px;
+                        overflow: auto;    
+                    }                                       
+                    ${soliromUtils.awesomeButtonStyle}                                      
+                </style>
+                <div id="content">
+                    <div id="master">
+                        <div id="master-toolbar">
+                            <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
+                            <button id="edit-entry-button" class="fa-button" title="Editare intrare">&#xf14b;</button>
+                            <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
+                            <button id="move-entry-button" class="fa-button" title="Mutare intrare">&#xf0c7;</button>
+                            <button id="switch-numbering-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
+                            <label for="transcription-status-selector">Stare pagină</label>
+                            <select id="page-status-selector">
+                                <option value="unknown"></option>
+                                <option value="validated">validată</option>
+                                <option value="reviewed">revizuită</option>
+                            </select>                            
+                        </div>
+                        <div id="master-content" class="list-group"></div>
+                    </div>
+                    <div id="detail">
+                    <div id="detail-content">
+                        <teian-editor id="entry-editor" style="width: 93%; height: 320px;">
+                            <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                            <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
+                        </teian-editor>                    
+                    </div>
+                    </div> 
+                </div>
+            `
+        ; 
+        
+        this.masterContentContainer = shadowRoot.querySelector("#master-content");
+        this.sha = {
+            transcription: "",
+            entry: ""
+        };
+        this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
+        this.selectedEntryPath = "";
+        this.pbElement = null;
+        this.entryEditor = shadowRoot.querySelector("#entry-editor");
+
+        shadowRoot.addEventListener("click", (event) => {
+            const target = event.target;
+            
+            if (target.matches(".transcription-reference, .transcription-reference *")) {
+                const transcriptionReference = target.closest(".transcription-reference");
+                [...transcriptionReference.parentNode.querySelectorAll(".transcription-reference")].forEach(
+                    element => element.classList.remove("selected-transcription")
+                );
+                transcriptionReference.classList.add("selected-transcription");
+                this.selectedEntryPath = [solirom.data.work.volumeNumber, solirom.data.repos.text.transcriptionsPath, transcriptionReference.dataset.href]
+                .filter(Boolean).join("/");
+            }
+
+            if (target.matches("#switch-numbering-button")) {
+                document.querySelector("#numbering-editor").style.display = "inline-block";
+                document.querySelector("#transcription-editor").style.display = "none"; 	
+            }
+
+            if (target.matches("#edit-entry-button")) {
+                this.editEntry(this.selectedEntryPath); 	
+            }            
+        }, false);
+        
+        shadowRoot.addEventListener("change", (event) => {
+            const target = event.target;
+            
+            if (target.matches("#page-status-selector")) {
+                this.pbElement.setAttribute("cert", target.value);
+                solirom.actions.saveWorkIndexFile();
+            }            
+        }, false);        
+    }    
+
+    connectedCallback() {
+    }
+    
+    disconnectedCallback() {
+    }
+    async displayTranscription(pbElement) {
+        this.reset();
+        this.pbElement = pbElement;
+        const transcriptionPath = pbElement.getAttribute("corresp");
+        const pageStatus = pbElement.getAttribute("cert");
+        this.pageStatusSelector.value = pageStatus;
+
+        var result;
+        try {
+            result = await solirom.data.repos.text.client({
+                method: "GET",
+                path: transcriptionPath
+            });
+            result = result.data;		
+        } catch (error) {
+            console.error(error);
+            alert("Eroare la încărcarea transcrierii.");
+            return;
+        }
+
+        this.sha.transcription = result.sha;
+        var transcription = solirom.actions.b64DecodeUnicode(result.content);
+        transcription = (new DOMParser()).parseFromString(transcription, "application/xml").documentElement;
+        const references = [...transcription.querySelectorAll("*|include")];
+
+        references.forEach((element) => {
+            const label = element.getAttribute("label");
+            const href = element.getAttribute("href");
+            this.masterContentContainer.insertAdjacentHTML("beforeend", solirom.data.templates.transcriptionReference({"label": label, "href": href})); 
+        });
+        Sortable.create(this.masterContentContainer, {
+            animation: 350
+        });        
+    }
+    async editEntry(selectedEntryPath) {
+        var result;
+        try {
+            result = await solirom.data.repos.text.client({
+                method: "GET",
+                path: selectedEntryPath
+            });
+            result = result.data;		
+        } catch (error) {
+            console.error(error);
+            alert("Eroare la încărcarea intrării.");
+            return;
+        }
+
+        this.sha.entry = result.sha;
+        const entry = solirom.actions.b64DecodeUnicode(result.content); 
+        
+		this.entryEditor.setAttribute("status", "edit");
+		this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
+    };    
+    reset() {
+        this.masterContentContainer.innerHTML = "";
+        this.sha.transcription = "";
+        this.sha.entry = "";
+    }    
+};
+
+teian.frameworkDefinition["t-"] = "";
+
+window.customElements.define("transcription-editor", TranscriptionEditorComponent);

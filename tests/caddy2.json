@@ -1,0 +1,112 @@
+{
+	"apps": {
+		"http": {
+			"servers": {
+				"srv0": {
+					"listen": [
+						":443"
+					],
+					"routes": [
+						{
+							"match": [
+								{
+									"host": [
+										"solirom.ro"
+									]
+								}
+							],
+							"handle": [
+								{
+									"handler": "subroute",
+									"routes": [
+										{
+											"handle": [
+												{
+													"handler": "vars",
+													"root": "'/var/web/solirom-site'"
+												}
+											]
+										},
+										{
+											"handle": [
+												{
+													"handler": "reverse_proxy",
+													"upstreams": [
+														{
+															"dial": "localhost:8080"
+														}
+													]
+												}
+											],
+											"match": [
+												{
+													"path": [
+														"/exist"
+													]
+												}
+											]
+										},
+										{
+											"handle": [
+												{
+													"handler": "reverse_proxy",
+													"upstreams": [
+														{
+															"dial": "localhost:5050"
+														}
+													]
+												}
+											],
+											"match": [
+												{
+													"path": [
+														"/data"
+													]
+												}
+											]
+										},
+										{
+											"handle": [
+												{
+													"handler": "reverse_proxy",
+													"upstreams": [
+														{
+															"dial": "localhost:8095"
+														}
+													]
+												}
+											],
+											"match": [
+												{
+													"path": [
+														"/api"
+													]
+												}
+											]
+										}
+									]
+								}
+							],
+							"terminal": true
+						}
+					]
+				}
+			}
+		},
+		"tls": {
+			"automation": {
+				"policies": [
+					{
+						"subjects": [
+							"solirom.ro"
+						],
+						"issuer": {
+							"email": "claudius.teodorescu@gmail.com",
+							"module": "acme"
+						}
+					}
+				]
+			}
+		}
+	}
+}

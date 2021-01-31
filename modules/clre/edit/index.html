@@ -1,0 +1,59 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>CLRE - editare intrări</title>
+        <meta charset="utf-8"/>
+      		<meta name="author" content="Claudius Teodorescu"/>	
+		
+        <script type="module" src="/modules/teian-editor/teian-editor.js" defer="true"></script> 
+        <script type="module" src="/modules/kuberam-login-element/kuberam-login-element.js" defer="true"></script>        
+        <script type="module" src="/modules/range/range-component.js" defer="true"></script>
+        <script src="/modules/dabi/dabi.js"></script>
+        <script type="module" src="templates.js" defer="true"></script>
+
+        <!-- Awesomplete -->
+        <link rel="stylesheet" href="/modules/awesomplete/awesomplete.css"/>
+        <script src="/modules/awesomplete/awesomplete.min.js" defer="true"></script>
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css" />
+        
+        <script src="index.js" defer="true"></script>        
+        <link rel="stylesheet" href="index.css"/>  
+    </head>
+    <body>
+        <div id="content-container">
+            <h2 class="box1">CLRE - editare intrări</h2>
+            <kuberam-login-element class="box2">
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="alinamihaelabursuc@gmail.com">Alina Mihaela Bursuc</option>
+                        <option value="marius.clim@gmail.com">Marius Radu Clim</option>                        
+                        <option value="mioaradragomir2013@gmail.com">Mioara Dragomir</option>                          
+                        <option value="florescu24cristina@gmail.com">Cristina Florescu</option>
+                        <option value="gabihaja@gmail.com">Gabriela Haja</option>
+                        <option value="lauramanea2014@gmail.com">Laura Mona Manea</option>                        
+                        <option value="isabelle.tamba@gmail.com">Isabelle Tamba</option>
+                        <option value="claudius.teodorescu@gmail.com">Claudius-Marian Teodorescu</option>
+                    </select>
+            </kuberam-login-element> 
+            <div class="box3">
+                <input id="search-string" />
+            </div>            
+            <div class="box4"> 
+                <solirom-range></solirom-range>
+            </div>            
+            <div id="facsimile-links"></div>
+            <div class="box6"> 
+                <div>
+                    <button id="previous-image">&#xf104;</button>
+                    <output id="selected-page">0</output>
+                    <button id="next-image">&#xf105;</button>
+                </div>
+                <img src="" />
+            </div>
+            <teian-editor class="box7" style="width: 95%; height: 950px; overflow: scroll;">
+                <button slot="toolbar" onclick="solirom.actions.saveFile()" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+            </teian-editor>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,28 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Siglar digital</title>
+        <meta charset="utf-8"/>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous">/**/</script>
+        <link rel="stylesheet" href="index.css"/>  
+        <script type="text/javascript" charset="utf-8" src="index.js">/**/</script>   
+
+        <!-- Font Awesome -->
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous"/> 
+		
+		<!-- clipboard.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js">/**/</script>		
+    </head>
+    <body>
+    <h2>Siglar digital</h2>
+    <p>Căutarea se face cu diacritice.</p>
+    <p>Se pot face căutări după șiruri de litere localizate oriunde în interiorul unei sigle, indiferent că este veche, din DLR sau din DLRI.</p>
+    <p>Rezultatele vor fi afișate în două tabele: primul cuprinde corespondențe între siglele vechi și cele din DLR, iar al doilea
+    cuprinde corespondențe între siglele DLR și sigle DLRI, respectiv, care au la început șirul de litere cu care s-a făcut căutarea.</p>
+    <p>Dacă se apasă pe butonul <span class="clipboard-button"></span> din stânga atestării în format DLRI, aceasta va fi copiată automat și va putea fi inserată în documentul word în care lucrați, cu tot cu formatare (îngroșat, drept, înclinat, după caz).</p>
+    <div id="simple-search-container">
+        <input id="search-string" type="text"/>
+        <button id="search-button">&#xf002;</button>
+    </div>
+    <div id="content"/>
+    </body>
+</html>

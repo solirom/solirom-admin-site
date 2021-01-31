@@ -1,0 +1,102 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Editare citate</title>
+        <meta charset="utf-8"/>
+		<meta name="author" content="Claudius Teodorescu"/>		
+		
+        <script type="module" src="/modules/teian-editor/teian-editor.js" defer="true">/**/</script>
+        <script type="module" src="/modules/kuberam-login-element/kuberam-login-element.js" defer="true">/**/</script>
+        <script type="module" src="teian-mods.js" defer="true">/**/</script>
+        <script type="module" src="index.js" defer="true">/**/</script>         
+        <link rel="stylesheet" href="index.css"/>  
+
+        <!-- Font Awesome -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"/> 
+    </head>
+    <body>
+        <div id="content-container">
+            <div id="header">
+                <kuberam-login-element>
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="marius.clim">Clim Marius</option>
+                        <option value="ailincai_alina">Ailincăi Alina Roxana</option>
+                        <option value="tundebokor66">Albert G. Tünde</option>
+                        <option value="ginaroznovat1980">Albu Gina căs. Roznovăț</option>
+                        <option value="anca.ax17">Alexandrescu C. Ancuţa Elena</option>
+                        <option value="asztalosemoke">Asztalos L. Emőke</option>
+                        <option value="balanandreea_96">Bălan Andreea Iuliana (Huțanu)</option>
+                        <option value="bandur_alexandra">Bandur Alexandra Mihaela</option>
+                        <option value="timea.bartha">Bartha Timea căs. Vodă-Bartha</option>
+                        <option value="robert2mai">Bălăiasa Robert Claudius</option>
+                        <option value="gabryenrazvan">Barna S.S. Gabriel - Răzvan</option>
+                        <option value="lilikara33">Bolat S. Leila</option>
+                        <option value="botezatuelena19">Botezatu N. Elena</option>
+                        <option value="alina1184">Căpraru M. Alina Mihaela</option>
+                        <option value="andreea.petenghea">Caunic Andreea (Pețenghea)</option>
+                        <option value="adrian.mchiriac">Chiriac Adrian Mădălin</option>
+                        <option value="climov_ana">Climov S. Ana Maria</option>
+                        <option value="colbanirina">Colban Irina</option>
+                        <option value="laucostache">Costache M. Laura - Corina căs. PASCU</option>
+                        <option value="irinapetronela_craciun">Crăciun Irina Petronela</option>
+                        <option value="cretu.florentina9">Crețu Florentina Camelia</option>
+                        <option value="superbusalexander">Crişan I. Alexandru - Iancu</option>
+                        <option value="drageaniulianag">Drăgean Iuliana</option>
+                        <option value="galszilvia96">Gál A. Szilvia</option>
+                        <option value="emese.g">Gere I. Emese</option>
+                        <option value="letitia_gheorghiu">Gheorghiu Ștefana Letiția</option>
+                        <option value="maragherendi">Gherendi F. Mara</option>
+                        <option value="nicoletapinghireac">Imbrea N. Nicoleta</option>
+                        <option value="lenke.jancso">Jancsó E. Lenke</option>
+                        <option value="alice.ilie">Lazăr Alexandra (Ilie)</option>
+                        <option value="floriiilesan">Leșan Floarea Paraschiva</option>
+                        <option value="loghin_luiza">Loghin Luiza Petronela</option>   
+                        <option value="ilincaioana583">Malanca Ioana Ilinca</option>
+                        <option value="magdatemneanu">Maleș Maria Magdalena (Temneanu)</option>                        
+                        <option value="monica_pui">Manasoiu I. Monica - Emilia căs. PUI</option>
+                        <option value="ionela.moales">Moaleș Ionela</option>
+                        <option value="ioanacatalina009">Moraru Ioana Cătălina</option>
+                        <option value="onofriciuc.alexandra">Onofriciuc Alexandra</option>                        
+                        <option value="ioana.palas">Palas F.A. Ioana - Florina</option>
+                        <option value="palago97">Pál F. Ágota</option>
+                        <option value="made.line90">Plotogea I. Mădălina Ioana</option>
+                        <option value="popescu.andra16">Popa Andra Paula (Popescu) </option>
+                        <option value="popa.andrei.ionut22">Popa Andrei Ionuț</option>                        
+                        <option value="cristinamadalina1987">Popa G. Cristina Mădălina</option>
+                        <option value="ana.puiulet">Puiuleţ L. Ana  Maria</option>
+                        <option value="adinaprisacaru04">Prisacaru Iustina Adina</option>
+                        <option value="andreea.chirila87">Rizea C. Andreea - Georgiana căs. CHIRILĂ</option>
+                        <option value="danaciucan">Roşca AL. Maria - Daniela căs. CIUCAN</option>
+                        <option value="mya_99may">Rus Maria Cornelia</option>                         
+                        <option value="andrea.sere">Sere C. Andrea</option>
+                        <option value="crististalpeanu">Stâlpeanu M. Nicu Cristian</option>
+                        <option value="cristinabrat">Tăbăcilă Z. Cristina căs. BRAT</option>
+                        <option value="claudius.teodorescu">Teodorescu D. Claudius Marian</option>
+                        <option value="emoketimar">Timár Z.L. Emőke</option> 
+                        <option value="tarle.lorena">Ţârle I. Ximena Lorena</option> 
+                    </select>
+                </kuberam-login-element>
+                <h2>Editare citate</h2>
+                <!--<h1>Vă rugăm să nu lucrați până la data de 13.05, orele 19:00, deoarece baza de date este în curs de întreținere și nu se vor salva intrările.</h1>-->
+            </div>  
+            <div id="search-container">
+                <div id="simple-search-tab">
+                    <input id="search-string" placeholder="" value="" maxlength="50" autocomplete="off" type="text"/>
+                    <button id="search-button">&#xf002;</button>
+                </div>
+                <div>
+                    <label for="entries-counter">Număr de intrări:</label>
+                    <output id="entries-counter">0</output>
+                </div>                
+                <div id="search-result"></div>
+            </div>    
+            <teian-editor>
+    		    <button slot="toolbar" onclick="solirom.file.new()" id="new-button" title="Document nou">&#xf15b;</button>
+    		    <button slot="toolbar" onclick="solirom.file.save()" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+    		    <button slot="toolbar" onclick="solirom.file.delete()" id="delete-button" title="Ștergere document" disabled="true">&#xf2ed;</button>
+    		    <button slot="toolbar" onclick="solirom.file.duplicate()" id="duplicate-button" title="Duplicare document" disabled="true">&#xf24d;</button>
+    		    <button slot="toolbar" onclick="solirom.file.history()" id="history-button" title="Istoric versiuni document" disabled="true">&#xf1da;</button>
+            </teian-editor>
+        </div>
+    </body>
+</html>

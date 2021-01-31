@@ -1,0 +1,104 @@
+html {
+    padding: 5px;
+}
+
+#content {
+    display: grid;
+    grid-template-columns: 200px auto;
+    grid-template-rows: 160px auto;
+    grid-template-areas:
+        "logo summary"
+        "menu gallery";
+    grid-gap: 10px;
+}
+
+#logo {
+    border-radius: 50%;
+    height: 32px;
+    width: auto;
+}
+
+#logo-container {
+	grid-area: logo;
+}
+
+#summary-container {
+	grid-area: summary; 
+}
+
+#menu {
+	grid-area: menu; 
+}
+
+#gallery {
+    grid-area: gallery; 
+}
+
+.mainmenu, .submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mainmenu a {
+  display: block;
+  background-color: #CCC;
+  text-decoration: none;
+  padding: 10px;
+  color: #000;
+}
+
+.mainmenu a:hover {
+    background-color: #C5C5C5;
+}
+
+.submenu {
+  overflow: hidden;
+  max-height: 0;
+  transition: all 0.5s ease-out;
+}
+
+.content {
+  display: none;
+}
+
+.content.active {
+    display: block;
+}
+
+.content > div {
+    display: flow-root;
+}
+
+
+.button {
+    background-color: #3e7bdd;  
+    border-radius: 10px;
+    width: 200px;
+    height: 200px;
+    line-height: 200px;
+    margin: 5px;
+    float: left;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    text-align: center;
+    padding: 5px;
+}
+
+.button:focus, .button:hover {
+    background-color: #104aa8;
+}
+
+.button > span {
+    display: inline-block;
+    line-height: 20px;
+    color: white;
+    font-weight: bold;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);    
+}
+
+#search-container button {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;                
+}

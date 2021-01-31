@@ -1,0 +1,350 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Calculator punctaj academic</title>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<meta name="description" content="Solirom"/>
+		<meta name="author" content="Claudius Teodorescu"/>
+		
+        <!-- Font Awesome -->
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous"/> 
+		
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.css"/>
+		<link rel="stylesheet" type="text/css" href="index.css"/>
+		<script src="index.js" defer="true">/**/</script>
+	</head>
+	<body>
+	    <header>
+    		<div id="logo-container">
+    			<img id="logo" src="http://lingv.ro/index_clip_image002.gif" alt="Institutul de lingvistică"/>
+    		</div>	    
+    		<div id="summary-container">
+    		    <h2>ACADEMIA ROMÂNĂ</h2>
+    			<h4>Secția de filologie și literatură</h4>
+    		</div>	
+		</header>
+		<h1>Calculator de punctaj academic</h1>
+		<div>
+		    <p>Salvarea datelor se face în computerul dvs., în cadrul informațiilor stocate curent de către browser-ul pe care îl folosiți, astfel că puteți modifica datele introduse ori de câte ori doriți. Datele nu sunt accesibile cu alt browser decât cel cu care au fost salvate. De asemenea, dacă dezinstalați browser-ul folosit pentru salvarea datelor, acestea vor fi șterse.</p>
+		    <p>Niciun fel de informații nu sunt stocate în niciun server de către această aplicație.</p>
+            <button id="save-button">Salvare</button>
+	    </div>		
+		<h2>Anexa nr. 29 - COMISIA DE FILOLOGIE</h2>
+		<h2>STANDARDE MINIMALE ȘI OBLIGATORII PENTRU CONFERIREA TITLURILOR DIDACTICE DIN<br/>ÎNVĂȚĂMÂNTUL SUPERIOR ȘI A GRADELOR PROFESIONALE DE CERCETARE - DEZVOLTARE</h2>
+			<table id="score-calculator-table">
+                <thead>
+                    <tr>
+                        <th>Domeniul activităților</th>
+                        <th>Indicatori</th>
+                        <th>Categorii</th>
+                        <th>Subcategorii</th>
+                        <th>Elementul pentru care se acordă punctajul</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="9">1. Activitatea profesională și didactică (A.1.)</td>
+                        <td rowspan="5">1.1. Cărți și capitole în lucrări de specialitate, ediții. Se au în vedere lucrări publicate la edituri de prestigiu (a) din străinătate; (b) din țară</td>
+                        <td>1.1.1. Carte<sup>2</sup> de autor unic, având la bază teza de doctorat.</td>
+                        <td id="section-111"/>
+                        <td>cartea</td>
+                        <th scope="row">
+                            <output id="section-111-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>1.1.2 Autor sau coautor de monografie, sinteză, volum de studii tematice, studiu lingvistic, filologic, de critică sau istorie literară, dicționar științific, ediție critică filologică (text vechi, documente, traducerea și editarea critică a unui text scris într-o limbă veche).</td>
+                        <td id="section-112"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-112-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>1.1.3 Coordonator / coautor în lucrări fundamentale sau de referință (dicționare, enciclopedii, atlase, tratate).</td>
+                        <td id="section-113"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-113-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>1.1.4 Editarea cu aparat științific a unei opere științifice sau literare (inclusiv antologii) cu text(e) aparținând altui autor decât cel al ediției.</td>
+                        <td id="section-114"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-114-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>1.1.5 Editarea - (a) în străinătate; (b) în țară - de volume decurgând din lucrări ale unor simpozioane, colocvii, conferințe, congrese, work-shop-uri pe teme științifice, organizate în cadru instituțional de către Universități, Academia Română, Institutele Academiei Române; editarea de volume colective și de numere tematice ale publicațiilor de specialitate.</td>
+                        <td id="section-115"/>
+                        <td>fiecare volum</td>
+                        <th scope="row">
+                            <output id="section-115-subtotal">0</output>
+                        </th>
+                    </tr>                    
+                    <tr>
+                        <td rowspan="2">1.2 Traduceri</td>
+                        <td>1.2.1 Traducerea unei opere științifice sau beletristice din autori consacrați.</td>
+                        <td id="section-121"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-121-subtotal">0</output>
+                        </th>
+                    </tr>                    
+                    <tr>
+                        <td>1.2.2 Dotarea unei traduceri cu aparat crtitic (note bio-bibliografice, note și comentarii).</td>
+                        <td id="section-122"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-122-subtotal">0</output>
+                        </th>
+                    </tr>                     
+                    <tr>
+                        <td>1.3 Material didactic</td>
+                        <td>Curs sau manual universitar cu ISBN.</td>
+                        <td id="section-13"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-13-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <td>1.4 Îndrumare</td>
+                        <td>Conducător de doctorat.</td>
+                        <td id="section-14"/>
+                        <td>calitatea</td>
+                        <th scope="row">
+                            <output id="section-14-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <th colspan="5">TOTAL A.1.</th>
+                        <th>
+                            <output id="total-a1">0</output>
+                        </th>
+                    </tr>                    
+                    <tr>
+                        <td rowspan="9">2. Activitatea de cercetare (A.2.)</td>
+                        <td rowspan="4">2.1. Articole, studii, recenzii</td>
+                        <td>2.1.1. publicate în reviste științifice indexate ISI / Thompson Reuters, Elsevier / Scopus, Ebsco;</td>
+                        <td id="section-211"/>
+                        <td>fiecare articol sau recenzie</td>
+                        <th scope="row">
+                            <output id="section-211-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>2.1.2. publicate în reviste științifice indexate ERIII Plus sau indexate concomitent în cel puțin 3 BDI, altele decât cele de sub 2.1.1 (se exclude Google Scholar Academic);</td>
+                        <td id="section-212"/>
+                        <td>fiecare articol sau recenzie</td>
+                        <th scope="row">
+                            <output id="section-212-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>2.1.3. publicate în Analele / Buletinele / Anuarele Universităților / Academiei, volume colective, omagiale, in memoriam; în volume de comunicări prezentate în manifestări științifice interne și internaționale, cu comitete științifice: (a) în străinătate; (b) în țară;</td>
+                        <td id="section-213"/>
+                        <td>fiecare articol sau recenzie</td>
+                        <th scope="row">
+                            <output id="section-213-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <td>2.1.4. studii, eseuri, articole pe teme literare publicate în reviste de specialitate, necotate CNCS, cu ISSN.</td>
+                        <td id="section-214"/>
+                        <td>fiecare articol, până la un maximum de 50 p</td>
+                        <th scope="row">
+                            <output id="section-214-subtotal">0</output>
+                        </th>
+                    </tr>   
+                    <tr>
+                        <td rowspan="2">2.2. Activitate editorială</td>
+                        <td>2.2.1. Membru al unui colectiv de redacție al unei reviste de specialitate cu peer review, din străinătate (a) sau din țară (b).</td>
+                        <td id="section-221"/>
+                        <td>fiecare atribuție</td>
+                        <th scope="row">
+                            <output id="section-221-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <td>2.2.2. Referent științific și coordonator de colecții la edituri sau reviste acreditate, din străinătate (a) sau din țară (b).</td>
+                        <td id="section-222"/>
+                        <td>fiecare atribuție, nu fiecare referat</td>
+                        <th scope="row">
+                            <output id="section-222-subtotal">0</output>
+                        </th>
+                    </tr> 
+                    <tr>
+                        <td rowspan="2">2.3. Granturi științifice</td>
+                        <td>2.3.1. finanțate instituțional, obținute prin competiție internațională sau națională, pe baza unui proiect de cercetare.</td>
+                        <td id="section-231"/>
+                        <td>fiecare proiect</td>
+                        <th scope="row">
+                            <output id="section-231-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <td>2.3.2. finanțate instituțional, individuale, obținute prin competiție, pe baza unui proiect de cercetare.</td>
+                        <td id="section-232"/>
+                        <td>fiecare proiect</td>
+                        <th scope="row">
+                            <output id="section-232-subtotal">0</output>
+                        </th>
+                    </tr>  
+                    <tr>
+                        <td>2.4. Comunicări</td>
+                        <td>prezentate la manifestări științifice (conferințe, congrese, simpozioane, colocvii, workshopuri etc.) cu comitete științifice sau cu sistem de selecție peer-review, (a) în străinătate sau (b) în țară.</td>
+                        <td id="section-241"/>
+                        <td>fiecare comunicare</td>
+                        <th scope="row">
+                            <output id="section-241-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th colspan="5">TOTAL A.2.</th>
+                        <th>
+                            <output id="total-a2">0</output>
+                        </th>
+                    </tr>                    
+                    <tr>
+                        <td rowspan="9">3. Recunoașterea și impactul activității (A.3.)</td>
+                        <td>3.1. Traduceri</td>
+                        <td>Carte științifică de autor publicată în străinătate, depă ce a fost deja publicată în România sau în R. Moldova.</td>
+                        <td id="section-31"/>
+                        <td>fiecare carte</td>
+                        <th scope="row">
+                            <output id="section-31-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>3.2. Premii și distincții academice</td>
+                        <td>Oferite de Universități, Institute de cercetare, Academii, USR, Asociații profesionale de nivel național.</td>
+                        <td id="section-32"/>
+                        <td>fiecare premiu</td>
+                        <th scope="row">
+                            <output id="section-32-subtotal">0</output>
+                        </th>
+                    </tr> 
+                    <tr>
+                        <td rowspan="2">3.3. Citări, mențiuni bibliografice, recenzări</td>
+                        <td>3.3.1 Citări și mențiuni bibliografice, cu excepția autocitărilor. O citare presupune menționarea explicită a numelui / a contribuției celui citat și este înregistrată o singură dată, indiferent de numărul de ocurențe din lucrarea care citează. Lucrările în care se face citarea trebuie să aibă ISBN sau ISSN.</td>
+                        <td id="section-331"/>
+                        <td>fiecare lucrare în care este menționată o contribuție științifică a candidatului</td>
+                        <th scope="row">
+                            <output id="section-331-subtotal">0</output>
+                        </th>
+                    </tr> 
+                    <tr>
+                        <td>3.3.2 Recenzii în publicații cu ISBN sau ISSN.</td>
+                        <td id="section-332"/>
+                        <td>fiecare recenzie</td>
+                        <th scope="row">
+                            <output id="section-332-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>3.4. Keynote speaker</td>
+                        <td>Conferințe în plenară la colocvii, simpozioane, conferințe, congrese (a) internaționale / (b) naționale.</td>
+                        <td id="section-34"/>
+                        <td>fiecare conferință</td>
+                        <th scope="row">
+                            <output id="section-34-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">3.5. Stagii în străinătate</td>
+                        <td>3.5.1 Stagiu de cercetare în străinătate (exclusiv Erasmus - staff mobility; minimum o lună).</td>
+                        <td id="section-351"/>
+                        <td>fiecare stagiu</td>
+                        <th scope="row">
+                            <output id="section-351-subtotal">0</output>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>3.5.2 Visiting professor documentat ca atare, prin contract sau invitație (minimum o lună).</td>
+                        <td id="section-352"/>
+                        <td>fiecare stagiu</td>
+                        <th scope="row">
+                            <output id="section-352-subtotal">0</output>
+                        </th>
+                    </tr>                     
+                    <tr>
+                        <td>3.6. Prezența în baze de date și biblioteci din țară și străinătate</td>
+                        <td>ProQuest Central, Ebsen, Wiley Online, CEEOL, JSTOR, Oxford Journals, Ulrichs, ISSN, ERIH (exclus Google Scholar Academic); KVK, worldcat.org, lib. washington.edu, În cataloagele B.C.U. București, Cluj, Iași, Timișoara, B.A.R.</td>
+                        <td id="section-36"/>
+                        <td>fiecare prezență / lucrare, până la un maximum de 100 p</td>
+                        <th scope="row">
+                            <output id="section-36-subtotal">0</output>
+                        </th>
+                    </tr>                    
+                    <tr>
+                        <td>3.7. Participarea la comisii de experți</td>
+                        <td>de evaluare de proiecte, de susținere a tezei de doctorat sau de concurs pentru ocuparea unei funcții didactice sau în cercetare.</td>
+                        <td id="section-37"/>
+                        <td>fiecare participare</td>
+                        <th scope="row">
+                            <output id="section-37-subtotal">0</output>
+                        </th>
+                    </tr> 
+                    <tr>
+                        <th colspan="5">TOTAL A.3.</th>
+                        <th>
+                            <output id="total-a3">0</output>
+                        </th>
+                    </tr>                    
+                </tbody>
+                <tfooter>
+                    <tr>
+                        <th colspan="5">TOTAL GENERAL</th>
+                        <th>
+                            <output id="grand-total">0</output>
+                        </th>
+                    </tr>
+                </tfooter>
+			</table>
+			<p>Este obligatorie realizarea punctajului minim pentru fiecare set de criterii (domeniu de activitate A.1., A.2., A.3.).</p>
+            <table id="summary-table">
+                <caption>Condiții minimale, punctaj</caption>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Domeniul de activitate</th>
+                        <th>Profesor și CS I</th>
+                        <th>Conferențiar și CS II</th>
+                    </tr>
+                </thead>            
+                <tbody>
+                    <tr>
+                        <td/>
+                        <td colspan="2">publicarea tezei de doctorat</td>
+                    </tr>
+                    <tr>
+                        <td>Activitatea profesională și didactică (A.1.)</td>
+                        <td>minimum 200 de puncte, dintre care minimum 90 obținute la categoriile A.1.1.1 - A.1.1.2.</td>
+                        <td>minimum 100 de puncte, dintre care minimum 60 obținute la categoriile A.1.1.1 - A.1.1.2.</td>
+                    </tr>
+                    <tr>
+                        <td>Activitatea de cercetare (A.2.)</td>
+                        <td>minimum 450 de puncte</td>
+                        <td>minimum 300 de puncte</td>
+                    </tr>
+                    <tr>
+                        <td>Recunoașterea și impactul activității (A.3.)</td>
+                        <td>minimum 200 de puncte</td>
+                        <td>minimum 100 de puncte</td>
+                    </tr>                    
+                </tbody>
+                <tfooter>
+                    <tr>
+                        <th>TOTAL</th>
+                        <th>minimum 850 de puncte</th>
+                        <th>minimum 500 de puncte</th>
+                    </tr>
+                </tfooter>                
+            </table>
+		<p>
+            <sup>2</sup> La subpunctele 1.1, 1.2 și 1.3, pentru lucrările reeditate se ia în considerare doar o singură ediție - cea indicată de autor.</p>            
+	</body>
+</html>

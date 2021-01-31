@@ -1,0 +1,31 @@
+{
+	"apps": {
+		"http": {
+			"servers": {
+				"solirom": {
+					"listen": [":7000"],
+					"routes": [
+						{					
+							"handle": [{
+                                "handler": "file_server",
+                                "root": "/home/claudius/workspace/repositories/git/solirom-admin-site/"
+                            }]
+						},
+						{
+                            "match": [{
+                                "path": ["/api"]
+                            }],
+                            "handle": [{
+                                "handler": "reverse_proxy",
+                                "upstreams": [{
+                                    "dial": "188.212.37.221:8095",
+                                    "max_requests": 1000
+                                }]
+                            }]
+						}
+					]
+				}
+			}
+		}
+	}
+}

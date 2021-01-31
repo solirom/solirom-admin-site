@@ -1,0 +1,111 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Editare citate</title>
+        <meta charset="utf-8"/>
+		<meta name="author" content="Claudius Teodorescu"/>		
+		
+        <script type="module" src="../teian-editor/teian-editor.js" defer="true">/**/</script>
+        <script type="module" src="../kuberam-login-element/kuberam-login-element.js" defer="true">/**/</script>
+        <script type="module" src="teian-mods.js" defer="true">/**/</script>
+        <script src="index.js" defer="true">/**/</script>         
+        <link rel="stylesheet" href="index.css"/>  
+
+        <!-- Font Awesome -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"/> 
+    </head>
+    <body>
+        <div id="content-container">
+            <div id="header">
+                <kuberam-login-element>
+                    <select slot="user-details" id="users" onchange="document.dispatchEvent(kuberam.loginElement.events.login);">
+                        <option value=""/>
+                        <option value="madalinaajder@gmail.com" data-affiliation="UAIC">Ajder P. Mădălina</option>                        
+                        <option value="tunde.albert@student.unitbv.ro" data-affiliation="UNITBV">Albert G. Tünde</option> 
+                        <option value="gina.albu@student.unitbv.ro" data-affiliation="UNITBV">Albu G. Gina - Maria căs. Roznovăţ</option>
+                        <option value="ancuta.alexandrescu@student.unitbv.ro" data-affiliation="UNITBV">Alexandrescu C.I. Ancuţa - Elena</option>  
+                        <option value="gabriela_armencea@yahoo.com" data-affiliation="UAIC">Armencea P. Gabriela</option>                       
+                        <option value="emoke.asztalos@student.unitbv.ro" data-affiliation="UNITBV">Asztalos L. Emőke</option> 
+                        <option value="axintoaie.ancuta@yahoo.com" data-affiliation="UAIC">Axintoaie C. Ancuța-Petronela</option>
+                        <option value="ioanageorgiana323@yahoo.com" data-affiliation="UAIC">Bahrin V. Ioana-Georgiana</option>
+                        <option value="timea.bartha@student.unitbv.ro" data-affiliation="UNITBV">Bartha Timea căs. Vodă-Bartha</option>                        
+                        <option value="tunde.bedea@student.unitbv.ro" data-affiliation="UNITBV">Bedea L. Tünde - Gyöngyvér</option>
+                        <option value="leila.bolat@student.unitbv.ro" data-affiliation="UNITBV">Bolat S. Leila</option>                          
+                        <option value="adina.botez@student.unitbv.ro" data-affiliation="UNITBV">Botez I. Adina Silvia</option>
+                        <option value="elena.botezatu@student.unitbv.ro" data-affiliation="UNITBV">Botezatu N. Elena</option>                        
+                        <option value="mara.botos@student.unitbv.ro" data-affiliation="UNITBV">Botoş D. Mara Cătălina</option>
+                        <option value="suzana.caluean@student.unitbv.ro" data-affiliation="UNITBV">Căluean I. Suzana Maria Raluca</option>
+                        <option value="victor_celac@yahoo.com">Celac Victor</option>                        
+                        <option value="ana.climov@student.unitbv.ro" data-affiliation="UNITBV">Climov S. Ana Maria</option>  
+                        <option value="biancacreanga98@yahoo.com" data-affiliation="UAIC">Creangă N. Bianca-Elena</option>
+                        <option value="alexandru.crisan@student.unitbv.ro" data-affiliation="UNITBV">Crişan I. Alexandru - Iancu</option> 
+                        <option value="geaninnad@yahoo.com" data-affiliation="UAIC">Dumitruț F. Geanina-Marina</option>                        
+                        <option value="szilvia.gal@student.unitbv.ro" data-affiliation="UNITBV">Gál A. Szilvia</option>                        
+                        <option value="andrea.gaspar@student.unitbv.ro" data-affiliation="UNITBV">Gaspar D. Andrea - Carmen</option>
+                        <option value="emese.gere@student.unitbv.ro" data-affiliation="UNITBV">Gere I. Emese</option>                        
+                        <option value="mara.gherendi@student.unitbv.ro" data-affiliation="UNITBV">Gherendi F. Mara</option>
+                        <option value="anamariagibu@gmail.com" data-affiliation="UAIC">Gîbu S. Ana-Maria</option>                        
+                        <option value="sorina.grigore@student.unitbv.ro" data-affiliation="UNITBV">Grigore N. Sorina Ştefania</option>
+                        <option value="huminiuc.georgiana@yahoo.com" data-affiliation="UAIC">Huminiuc C. Ș. Georgiana-Teodora</option>
+                        <option value="roxanaiancu@yahoo.com" data-affiliation="UAIC">Iancu V. I. Roxana-Maria</option>                        
+                        <option value="nicoleta-n.imbrea@student.unitbv.ro" data-affiliation="UNITBV">Imbrea N. Nicoleta</option>                        
+                        <option value="paula.ion@student.unitbv.ro" data-affiliation="UNITBV">Ion P. Paula Gabriela</option>
+                        <option value="andreeaionita1996@yahoo.com" data-affiliation="UAIC">Ioniță C. Andreea-Elena</option>
+                        <option value="istrate.ea@gmail.com" data-affiliation="UAIC">Istrate R. Elena-Alexandra</option>
+                        <option value="kriszta.jancso@student.unitbv.ro" data-affiliation="UNITBV">Jancsó L. Kriszta</option>
+                        <option value="lenke.jancso@student.unitbv.ro" data-affiliation="UNITBV">Jancsó E. Lenke</option>                        
+                        <option value="emese.kalman@student.unitbv.ro" data-affiliation="UNITBV">Kálmán C. Emese - Klára</option>
+                        <option value="biborka.kelemen@student.unitbv.ro" data-affiliation="UNITBV">Kelemen C. Bíborka</option>
+                        <option value="ancutamacovei3@gmail.com" data-affiliation="UAIC">Macovei G. Crina-Ancuța</option>
+                        <option value="marian.madalina21@gmail.com" data-affiliation="UAIC">Marian V. Elena-Mădălina</option>
+                        <option value="andreeamorcov96@gmail.com" data-affiliation="UAIC">Morcov I. Andreea</option>                        
+                        <option value="henrietta.muller@student.unitbv.ro" data-affiliation="UNITBV">Müller Z. Henrietta</option>
+                        <option value="nistor.ana.007@gmail.com" data-affiliation="UAIC">Nistor V. Ana</option>                        
+                        <option value="andreea.oana@student.unitbv.ro" data-affiliation="UNITBV">Oană C. Andreea Cristiana</option>
+                        <option value="agota.pal@student.unitbv.ro" data-affiliation="UNITBV">Pál F. Ágota</option>                        
+                        <option value="aranka.pal@student.unitbv.ro" data-affiliation="UNITBV">Pal C. Aranka</option>
+                        <option value="paduraru.emanuela@gmail.com" data-affiliation="UAIC">Păduraru F. Emanuela</option>
+                        <option value="ane_mari97@yahoo.com" data-affiliation="UAIC">Pîrțac C. Ana-Maria</option>  
+                        <option value="podariuandra@yahoo.com" data-affiliation="UAIC">Podariu G. Andra-Elena</option>                        
+                        <option value="cristina-madalina.popa@student.unitbv.ro" data-affiliation="UNITBV">Popa G. Cristina Mădălina</option>  
+                        <option value="ana.puiulet@student.unitbv.ro" data-affiliation="UNITBV">Puiuleţ L. Ana  Maria</option>
+                        <option value="rangamadalina96@gmail.com" data-affiliation="UAIC">Ranga I. Mădălina</option>                        
+                        <option value="andreea.rizea@student.unitbv.ro" data-affiliation="UNITBV">Rizea C. Andreea - Georgiana căs. CHIRILĂ</option>
+                        <option value="roxana.sandu28@yahoo.com" data-affiliation="UAIC">Sandu P. Elena-Roxana</option>                        
+                        <option value="elena.sandica@student.unitbv.ro" data-affiliation="UNITBV">Săndică BF. Elena Cristina</option> 
+                        <option value="andrea.sere@student.unitbv.ro" data-affiliation="UNITBV">Sere C. Andrea</option>                         
+                        <option value="nicu-cristian.stalpeanu@student.unitbv.ro" data-affiliation="UNITBV">Stâlpeanu M. Nicu Cristian</option> 
+                        <option value="astefanita4@gmail.com" data-affiliation="UAIC">Ștefăniță P. Andreea-Gabriela</option>
+                        <option value="claudius.teodorescu@student.unitbv.ro" data-affiliation="UNITBV">Teodorescu D. Claudius Marian</option>     
+                        <option value="emoke.timar@student.unitbv.ro" data-affiliation="UNITBV">Timár Z.L. Emőke</option>                       
+                        <option value="timisaglorena2@gmail.com" data-affiliation="UAIC">Timișag A. Lorena</option>    
+                        <option value="tiuticov@gmail.com" data-affiliation="UAIC">Tiuticov I. Ion</option>
+                        <option value="toma_teodorairina@yahoo.com" data-affiliation="UAIC">Toma A. Teodora-Irina căs. andrei</option>                                 
+                    </select>
+                </kuberam-login-element>
+                <h2>Editare citate</h2>
+                <!--<h1>Vă rugăm să nu lucrați până la data de 13.11, orele 22:00, deoarece baza de date este în curs de întreținere și nu se vor salva intrările.</h1>-->
+            </div>  
+            <div id="search-container">
+                <div id="simple-search-tab">
+                    <input id="search-string" placeholder="" value="" maxlength="50" autocomplete="off" type="text"/>
+                    <button id="search-button">&#xf002;</button>
+                </div>
+                <div>
+                    <label for="total-entries-counter">(total intrări:</label>
+                    <output id="total-entries-counter">0</output>
+                    <label for="entries-counter">, intrări corectate:</label>
+                    <output id="corrected-entries-counter">0</output>  
+                    )
+                </div>                
+                <div id="search-result"></div>
+            </div>    
+            <teian-editor>
+    		    <button slot="toolbar" onclick="solirom.file.new()" id="new-button" title="Document nou">&#xf15b;</button>
+    		    <button slot="toolbar" onclick="solirom.file.save()" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+    		    <button slot="toolbar" onclick="solirom.file.delete()" id="delete-button" title="Ștergere document" disabled="true">&#xf2ed;</button>
+    		    <button slot="toolbar" onclick="solirom.file.duplicate()" id="duplicate-button" title="Duplicare document" disabled="true">&#xf24d;</button>
+    		    <button slot="toolbar" onclick="solirom.file.history()" id="history-button" title="Istoric versiuni document" disabled="true">&#xf1da;</button>
+            </teian-editor>
+        </div>
+    </body>
+</html>

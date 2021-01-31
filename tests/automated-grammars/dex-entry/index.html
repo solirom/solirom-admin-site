@@ -1,0 +1,51 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Gramatici automate pentru editarea DEX-ului</title>
+        <meta charset="utf-8"/>
+        <script type="module" src="index.js" defer="true"></script>
+        <link rel="stylesheet" href="index.css"/>        
+    </head>
+    <body>
+        <h2>Gramatici automate pentru editarea DEX-ului</h2>
+        <div id="content">
+            <div id="examples">
+                <h5 class="section-header">Selectare intrare</h5>
+                <ul>
+                    <li>
+                        <span data-target="#headword">ABÁ1 interj.</span>
+                        <div data-target="#senses" class="list-group nested-sortable">
+                            <div class="list-group-item nested-1">(Înv.) (În propoziții interogative) Cuvânt care exprimă mirarea sau atrage atenția cuiva când i se vorbește.</div>
+                        </div>
+                        <span data-target="#etymology">– Onomatopee.</span>
+                    </li>            
+                    <li>
+                        <span data-target="#headword">ACÚM adv.</span>
+                        <div data-target="#senses" class="list-group nested-sortable">
+                            <div class="list-group-item nested-1">1. În prezent, în momentul de față; actualmente.
+                              <div data-target="#senses" class="list-group nested-sortable">
+                                  <div class="list-group-item nested-2">✧ Expr. Acu-i acu = a sosit clipa hotărâtoare.</div>
+                                  <div class="list-group-item nested-2">✦ În împrejurările actuale.</div>
+                              </div>
+                            </div>
+                            <div class="list-group-item nested-1">2. Îndată, imediat, numaidecât, acuși, acușica, amuși.
+                            </div>                            
+                        </div>                         
+                            3. Înainte cu... Acum doi ani. [Var.: acú, acúma adv.]
+                        <span data-target="#etymology">– Lat. eccum modo.</span>
+                    </li>
+                </ul>
+            
+            </div>
+            <div id="main">
+                <h5 class="section-header">Redactare intrare</h5>
+                <solirom-automated-grammar id="headword" grammar="/modules/dlr/edit/headword-grammar.js" type="input" placeholder="Cuvânt-titlu și categorie gramaticală" style="width: 90%; margin-bottom: 10px;"></solirom-automated-grammar>
+                <solirom-automated-grammar id="senses" grammar="/modules/dlr/edit/headword-grammar.js" type="textarea" placeholder="Sensuri" style="width: 90%; margin-bottom: 10px;"></solirom-automated-grammar>
+                <solirom-automated-grammar id="etymology" grammar="/modules/dlr/edit/headword-grammar.js" type="input" placeholder="Etimologie" style="width: 90%;"></solirom-automated-grammar>                
+            </div>        
+            <div id="results">
+                <h5 class="section-header">Redare intrare</h5>
+            
+            </div>
+        </div>
+    </body>
+</html>

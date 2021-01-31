@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Image conversion</title>
+        <meta charset="utf-8"/>
+		<meta name="author" content="Claudius Teodorescu"/>		
+		
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js" integrity="sha512-Z8CqofpIcnJN80feS2uccz+pXWgZzeKxDsDNMD/dJ6997/LSRY+W4NmEt9acwR+Gt9OHN0kkI1CTianCwoqcjQ==" crossorigin="anonymous"></script>
+        
+        <script type="module" src="index.js" defer="true"></script>        
+        <link rel="stylesheet" href="index.css"/>  
+    </head>
+    <body>
+        <div id="content-container">
+            <h2 id="header">Unit test for image conversion</h2>
+            <div id="source-image-container"> 
+                <div>
+                    <button id="add-scan" class="fa-button" title="Adăugare scan">&#xf15b;</button>
+                    <button id="png-convert" class="fa-button" title="Convertire în PNG">PNG</button>
+                    <button id="webp-convert" class="fa-button" title="Convertire în WEBP">WEBP</button>
+                    <solirom-infinite-loading-bar id="image-viewer-loading-bar" style="display:none"></solirom-infinite-loading-bar>
+                    <input type="file" id="add-scan-fileupload" accept="*/*" style="display:none"/>
+                    <span id="source-image-size"></span>
+                </div>            
+                <canvas id="source-image-canvas" width="500px" height="900px"></canvas>
+            </div>
+            <div id="target-image-container"> 
+                <div>
+                    <span id="target-image-size"></span>
+                </div>            
+                <canvas id="target-image-canvas" width="500px" height="900px"></canvas>
+            </div>            
+        </div>
+    </body>
+</html>
