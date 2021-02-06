@@ -38,12 +38,15 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         shadowRoot.innerHTML =
             `
                 <style>
+                    #content {
+                        background: white;    
+;   
+                    }                
                     #content, option {
                         font-family: cursive;
                         font-size: 12px;
                     }
                     #master-content {
-                        background: white;    
                         display: grid;
                         grid-template-columns: repeat(2, 1fr); 
                         column-gap: 10px;
@@ -62,7 +65,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         background-color: #ededeb;
                     }  
                     .transcription-reference > div {
-                        displaY: inline-block;
+                        display: inline-block;
                         position: relative;
                         height: 100%;
                         vertical-align: top;
@@ -82,7 +85,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         background-color: #adacac;                                                   
                     } 
                     #detail-content {
-                        background: white;    
                         height: 400px;
                         box-shadow: 0 0 0.5cm rgba(0,0,0,0.5); 
                         padding: 20px;
