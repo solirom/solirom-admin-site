@@ -9,7 +9,7 @@ solirom.data.templates.transcriptionFile =
 ;
 solirom.data.templates.transcriptionReference = 
     solirom.actions.html`
-        <div class="transcription-reference list-group-item" data-href="${props => props.href}">
+        <div class="transcription-reference list-group-item" data-href="${props => props.href}" title="${props => props.label}">
             <div class="drag-handler"></div><div class="transcription-detail">${props => props.label}</div>
         </div>
     `;
@@ -40,29 +40,32 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 <style>
                     #content {
                         background: white;    
-;   
+                        display: grid;
+                        grid-template-columns: 210px 1fr; 
+                        column-gap: 10px;
+                        row-gap: 5px;
+                        height: 990px; 
                     }                
                     #content, option {
                         font-family: cursive;
                         font-size: 12px;
                     }
+                    #master-toolbar {
+                        padding: 5px;
+                    }
                     #master-content {
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr); 
-                        column-gap: 10px;
-                        row-gap: 5px;
-                        height: 400px;
-                        box-shadow: 0 0 0.5cm rgba(0,0,0,0.5); 
-                        padding: 20px;
+                        height: 915px;
+                        padding: 5px;
                         overflow: auto; 
-                        margin-bottom: 20px;   
+                        margin: 5px 0 5px 0;
                     }
                     .transcription-reference {
-                        width:  300px;
+                        width:  190px;
                         height: 25px;
                         border-radius: 5px;
                         display: inline-block;
                         background-color: #ededeb;
+                        margin-bottom: 5px;
                     }  
                     .transcription-reference > div {
                         display: inline-block;
@@ -84,12 +87,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                     .selected-transcription {
                         background-color: #adacac;                                                   
                     } 
-                    #detail-content {
-                        height: 400px;
-                        box-shadow: 0 0 0.5cm rgba(0,0,0,0.5); 
-                        padding: 20px;
-                        overflow: auto;    
-                    }                                       
                     ${soliromUtils.awesomeButtonStyle}                                      
                 </style> 
                 <div id="content">
@@ -100,6 +97,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
                             <button id="move-entry-button" class="fa-button" title="Mutare intrare">&#xf0c7;</button>
                             <button id="switch-numbering-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
+                            <br/>
                             <label for="transcription-status-selector">Stare pagină</label>
                             <select id="page-status-selector">
                                 <option value="unknown"></option>
@@ -110,12 +108,12 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         <div id="master-content" class="list-group"></div>
                     </div>
                     <div id="detail">
-                    <div id="detail-content">
-                        <teian-editor id="entry-editor" style="width: 93%; height: 320px;">
-                            <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
-                            <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
-                        </teian-editor>                    
-                    </div>
+                        <div id="detail-content">
+                            <teian-editor id="entry-editor" style="width: 90%; height: 900px;">
+                                <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                                <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
+                            </teian-editor>                    
+                        </div>
                     </div> 
                 </div>
             `
