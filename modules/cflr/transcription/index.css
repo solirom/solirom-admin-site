@@ -41,10 +41,8 @@ body {
 }
 
 #scan-container {
-    padding: 16px;
-    margin-top: 30px;
     width: 100%;
-    height: 100vh;
+    height: 990px;
     overflow: auto;
     cursor: grab;
 }

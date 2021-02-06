@@ -19,6 +19,7 @@ export default class TeianEditorComponent extends HTMLElement {
                         margin-bottom: 0.5cm;
                         box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
                         padding: 20px;
+                        overflow: auto;
                         ${style}                        
                     }
                 </style>
