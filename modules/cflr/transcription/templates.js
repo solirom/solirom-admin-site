@@ -37,7 +37,7 @@ teian.frameworkDefinition = {
             </style>
             	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
             <div id="body">
-            		<slot name="t-pb"></slot>
+            	<slot name="t-pb"></slot>
 			</div>
     `,    
     "t-body-template": `
@@ -50,7 +50,8 @@ teian.frameworkDefinition = {
             </style>
             	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
             <div id="body">
-            		<slot name="t-pb"></slot>
+                <slot name="t-pb"></slot>
+                <slot name="t-entry"></slot>
 			</div>
     `,
     "t-back-template": `
@@ -61,7 +62,7 @@ teian.frameworkDefinition = {
                 }
               	${soliromUtils.awesomeButtonStyle}                 
             </style>
-            	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
+            <button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
             <div id="body">
             		<slot name="t-pb"></slot>
 			</div>

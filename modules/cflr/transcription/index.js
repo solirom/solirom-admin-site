@@ -1,6 +1,6 @@
 import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
-import { request as githubClient } from "https://cdn.skypack.dev/@octokit/request";
+import {request as githubClient} from "https://cdn.skypack.dev/@octokit/request";
 
 solirom.data.search = {
 	"result": {},
@@ -37,7 +37,7 @@ solirom.data.templates = {
 	"pb": solirom.actions.html`
 		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="0" corresp="${props => props.text}"></t-pb>
 	`,
-	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" src="${props => props.src}"/>`
+	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
 };
 solirom.data.scan = {
 	"name": ""
@@ -97,7 +97,7 @@ document.addEventListener("click", async (event) => {
 				await fetch(solirom.data.repos.lowResScan.basePath + scanName, {
 					method: "DELETE"
 				});	
-				document.querySelector(".box6 img").src = "";
+				document.querySelector("#scan").src = "";
 
 				const result = await solirom.data.repos.text.client({
 					method: "GET",
@@ -129,6 +129,26 @@ document.addEventListener("click", async (event) => {
     if (target.matches("#save-button")) {
 		solirom.actions.saveWorkIndexFile();
 	}
+
+    if (target.matches("#zoom-in-button")) {
+		const myImg = document.querySelector("#scan");
+		const currWidth = myImg.clientWidth;
+		if (currWidth == 5500) {
+			return false;
+		} else {
+		  myImg.style.width = (currWidth + 100) + "px";
+		}
+	}
+	
+    if (target.matches("#zoom-out-button")) {
+		const myImg = document.querySelector("#scan");
+		const currWidth = myImg.clientWidth;
+		if (currWidth == 100) {
+			return false;
+		} else {
+		  myImg.style.width = (currWidth - 100) + "px";
+		}
+	}	
 }, false);
 
 document.addEventListener("beforeunload", event => {
@@ -176,7 +196,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	solirom.data.repos.text.sha.index = result.sha;
 	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
-	document.querySelector(".box6 img").src = "";
+	document.querySelector("#scan").src = "";
 	teian.editor.reset();
 	document.querySelector("#add-scan").disabled = true;
 	document.querySelector("#replace-scan").disabled = true;
@@ -370,7 +390,7 @@ document.addEventListener("change", async (event) => {
 			[...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
 			teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline"; 
 	
-			document.querySelector(".box6 img").src = "";
+			document.querySelector("#scan").src = "";
 			document.querySelector("#add-scan").disabled = false;
 			document.querySelector("#replace-scan").disabled = false;
 			setTimeout(() => document.querySelector("#save-button").disabled = true, 100);   
@@ -446,12 +466,12 @@ solirom.actions.generateNewScanName = (latestScanName) => {
 };
 
 solirom.actions.updateImageViewerURL = (scanName) => {
-    const scanURL = solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName) + "?cache=" + Date.now();
-    
-	const imageElement = document.querySelector(".box6 img");
+	const scanURL = solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName) + "?cache=" + Date.now();    
+	
+	const imageElement = document.querySelector("#scan");
 	const imageParentElement = imageElement.parentElement;
 	imageElement.remove();
-	imageParentElement.insertAdjacentHTML("beforeend", solirom.data.templates.img({"src": scanURL}));    
+	imageParentElement.insertAdjacentHTML("beforeend", solirom.data.templates.img({"src": scanURL}));
     
     document.querySelector("#replace-scan").disabled = false;
     document.querySelector("#delete-scan").disabled = false;

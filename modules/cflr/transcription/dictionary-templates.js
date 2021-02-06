@@ -89,7 +89,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         overflow: auto;    
                     }                                       
                     ${soliromUtils.awesomeButtonStyle}                                      
-                </style>
+                </style> 
                 <div id="content">
                     <div id="master">
                         <div id="master-toolbar">
@@ -228,6 +228,28 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     }    
 };
 
-teian.frameworkDefinition["t-"] = "";
+teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
+teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
+teian.frameworkDefinition["t-orth-template"] = 
+    `
+        <input data-ref="#text"/>
+    `
+;
+
+customElements.define("t-entry", class extends teian.divClass {
+    constructor() {
+        super();
+    }
+});
+customElements.define("t-form", class extends teian.divClass {
+    constructor() {
+        super();
+    }
+});
+customElements.define("t-orth", class extends teian.formControlClass {
+    constructor() {
+        super();
+    }
+});
 
 window.customElements.define("transcription-editor", TranscriptionEditorComponent);
