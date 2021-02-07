@@ -93,7 +93,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                     <div id="master">
                         <div id="master-toolbar">
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
-                            <button id="edit-entry-button" class="fa-button" title="Editare intrare">&#xf14b;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
                             <button id="move-entry-button" class="fa-button" title="Mutare intrare">&#xf0c7;</button>
                             <button id="switch-numbering-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
@@ -103,7 +102,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                                 <option value="unknown"></option>
                                 <option value="validated">validată</option>
                                 <option value="reviewed">revizuită</option>
-                            </select>                            
+                            </select> 
+                            <solirom-infinite-loading-bar id="transcription-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>                           
                         </div>
                         <div id="master-content" class="list-group"></div>
                     </div>
@@ -111,7 +111,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         <div id="detail-content">
                             <teian-editor id="entry-editor" style="width: 90%; height: 900px;">
                                 <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
-                                <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
+                                <solirom-infinite-loading-bar id="entry-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
                             </teian-editor>                    
                         </div>
                     </div> 
@@ -128,6 +128,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.selectedEntryPath = "";
         this.pbElement = null;
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
+        this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
 
         shadowRoot.addEventListener("click", (event) => {
             const target = event.target;
@@ -146,11 +147,15 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 document.querySelector("#numbering-editor").style.display = "inline-block";
                 document.querySelector("#transcription-editor").style.display = "none"; 	
             }
-
-            if (target.matches("#edit-entry-button")) {
-                this.editEntry(this.selectedEntryPath); 	
-            }            
         }, false);
+
+        shadowRoot.addEventListener("dblclick", (event) => {
+            const target = event.target;
+            
+            if (target.matches(".transcription-reference, .transcription-reference *")) {
+                this.editEntry(this.selectedEntryPath); 
+            }           
+        }, false);        
         
         shadowRoot.addEventListener("change", (event) => {
             const target = event.target;
@@ -202,6 +207,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         });        
     }
     async editEntry(selectedEntryPath) {
+        this.transcriptionLoadingBar.show();
         var result;
         try {
             result = await solirom.data.repos.text.client({
@@ -219,7 +225,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         const entry = solirom.actions.b64DecodeUnicode(result.content); 
         
 		this.entryEditor.setAttribute("status", "edit");
-		this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
+        this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
+        this.transcriptionLoadingBar.hide();
     };    
     reset() {
         this.masterContentContainer.innerHTML = "";
