@@ -538,6 +538,11 @@ solirom.actions.saveScan = async (file) => {
 	}		
 };
 
+solirom.action.composePath = (steps, separator) => {
+//solirom.data.work.volumeNumber
+	return steps.filter(Boolean).join(separator);
+};
+
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {
 	replace: function(suggestion) {
 		this.input.value = suggestion.label;
