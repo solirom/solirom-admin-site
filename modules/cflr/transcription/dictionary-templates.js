@@ -1,6 +1,7 @@
 import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
 import * as soliromUtils from "/modules/utils/solirom-utils.js";
+import LanguageSelectorComponent from '/modules/solirom-language-selector/solirom-language-selector.js';
 
 solirom.data.templates.transcriptionFile =
     solirom.actions.html`<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation">
@@ -17,15 +18,16 @@ solirom.data.templates.entryFile =
     solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
         <entry>
             <form type="headword">
-                <orth n=""/>
-                <stress xml:lang="ro-x-accent-upcase-vowels"/>
+                <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
             </form>
-            <form type="lemma"/>
         </entry>
         <note>
             <editor role="transcriber">${props => props.author}</editor>
             <editor role="reviewer"/>
         </note>
+        <note>
+            <idno type="lemma">TUNSURĂ</idno>
+        </note>        
     </body>`
 ;
 
@@ -164,6 +166,26 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 this.pbElement.setAttribute("cert", target.value);
                 solirom.actions.saveWorkIndexFile();
             }            
+        }, false); 
+        
+        shadowRoot.addEventListener("solirom-language-selector-value-changed", (event) => {
+            const target = event.composedPath()[0];
+            
+            if (target.matches("#language-selector")) {
+                const orthElement = target.getRootNode().host;
+                orthElement.setAttribute("xml:lang", event.detail);
+            }
+        }, false); 
+        
+        shadowRoot.addEventListener("solirom-language-selector-character-selected", (event) => {
+            const target = event.composedPath()[0];
+            
+            if (target.matches("#language-selector")) {
+                const orthShadowRoot = target.getRootNode();
+                const orthElement = orthShadowRoot.querySelector("#orth-mini-editor");
+                orthElement.focus();
+                document.execCommand('insertHTML', false, event.detail);
+            }
         }, false);        
     }    
 
@@ -239,7 +261,8 @@ teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
 teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
-        <input data-ref="#text"/>
+        <solirom-language-selector id="language-selector" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
+        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
     `
 ;
 

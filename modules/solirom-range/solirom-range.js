@@ -161,7 +161,7 @@ export default class RangeComponent extends HTMLElement {
     }
     
     valueChangedEvent(event) {
-    		document.dispatchEvent(new CustomEvent("solirom-range-value-changed", {detail: this.actionButton.innerText}))
+    		document.dispatchEvent(new CustomEvent("solirom-range-value-changed", {detail: this.actionButton.innerText}));
     }
     
     reset() {

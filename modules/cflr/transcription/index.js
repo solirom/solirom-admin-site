@@ -538,7 +538,7 @@ solirom.actions.saveScan = async (file) => {
 	}		
 };
 
-solirom.action.composePath = (steps, separator) => {
+solirom.actions.composePath = (steps, separator) => {
 //solirom.data.work.volumeNumber
 	return steps.filter(Boolean).join(separator);
 };
