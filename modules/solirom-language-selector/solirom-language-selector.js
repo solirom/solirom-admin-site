@@ -30,7 +30,7 @@ export default class LanguageSelectorComponent extends HTMLElement {
 
                 this.toolbar.innerHTML = "";
                 const specialCharacters = (this.languages.find(element => languageTag === element[0]))[2];
-                this.toolbar.insertAdjacentHTML("beforeend", `${specialCharacters.map(specialCharacter => `<button data-character="${specialCharacter}">${specialCharacter}</button>`).join('')}`);
+                this.toolbar.insertAdjacentHTML("beforeend", `${specialCharacters.map(specialCharacter => `<button data-character="${specialCharacter}">${specialCharacter}</button>`).filter(Boolean).join('')}`);
                 this.dispatchEvent(new CustomEvent("solirom-language-selector-value-changed", {bubbles: true, composed: true, detail: target.value}))
             }
         }, false);
