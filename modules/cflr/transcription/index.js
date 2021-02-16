@@ -10,7 +10,7 @@ solirom.data.repos = {
 	"bflr": {
 		"indexName": "bflr"
 	},	
-	"text": {
+	"cflr": {
 		"client": {},
 		"sha": {
 			"index": ""
@@ -35,7 +35,7 @@ solirom.data.templates = {
 		<option xmlns="http://www.w3.org/1999/xhtml" value="${props => props.value}">${props => props.label}</option>
 	`,
 	"pb": solirom.actions.html`
-		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="0" corresp="${props => props.text}"></t-pb>
+		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="0" corresp="${props => props.transcriptionPath}"></t-pb>
 	`,
 	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
 };
@@ -88,9 +88,9 @@ document.addEventListener("click", async (event) => {
         if (confirmMsg) {
 			var scanName = solirom.data.scan.name;
 			teian.editor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();
-			var newTextName = scanName.replace("f", "t");
-			newTextName = newTextName.replace("png", "xml");					
-
+			var transcriptionName = scanName.replace("f", "t");
+			transcriptionName = transcriptionName.replace("png", "xml");					
+			const transcriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
 			
 			try {
 				document.querySelector("#image-viewer-loading-bar").show();				
@@ -99,15 +99,15 @@ document.addEventListener("click", async (event) => {
 				});	
 				document.querySelector("#scan").src = "";
 
-				const result = await solirom.data.repos.text.client({
+				const result = await solirom.data.repos.cflr.client({
 					method: "GET",
-					path: newTextName
+					path: transcriptionPath
 				});
 				
 				const username = document.querySelector("kuberam-login-element").username;
-				await solirom.data.repos.text.client({
+				await solirom.data.repos.cflr.client({
 					method: "DELETE",
-					path: newTextName,
+					path: transcriptionPath,
 					"sha": result.data.sha,
 					"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 					"committer": {
@@ -170,7 +170,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 
 	const [user, repoName] = solirom.data.search.rawResult.find(record => record.id === selectedItemId).fields["text-url"].split('/');
 	const key = solirom.data.search.rawResult.find(record => record.id === selectedItemId).fields["text-key"];
-	solirom.data.repos.text.client = githubClient.defaults({
+	solirom.data.repos.cflr.client = githubClient.defaults({
 		headers: {
 			authorization: "token " + key,
 		},		
@@ -182,7 +182,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 
 	var result;
 	try {
-		result = await solirom.data.repos.text.client({
+		result = await solirom.data.repos.cflr.client({
 			method: "GET",
 			path: "index.xml"
 		});
@@ -193,7 +193,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 		return;
 	}
 
-	solirom.data.repos.text.sha.index = result.sha;
+	solirom.data.repos.cflr.sha.index = result.sha;
 	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
 	document.querySelector("#scan").src = "";
@@ -404,16 +404,16 @@ document.addEventListener("change", async (event) => {
 solirom.actions.saveWorkIndexFile = async () => {
 	document.querySelector("#editor-loading-bar").style.display = "inline";
 	const username = document.querySelector("kuberam-login-element").username;
-	
+	const indexFilePath = solirom.actions.composePath([solirom.data.work.volumeNumber, "index.xml"], "/");
 	var data = teian.utils.unloadData();
 
 	var result;
 	try {
-		result = await solirom.data.repos.text.client({
+		result = await solirom.data.repos.cflr.client({
 			method: "PUT",
-			path: "index.xml",
+			path: indexFilePath,
 			content: solirom.actions.b64EncodeUnicode(data),
-			"sha": solirom.data.repos.text.sha.index,
+			"sha": solirom.data.repos.cflr.sha.index,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
 				"email": username,
@@ -427,7 +427,7 @@ solirom.actions.saveWorkIndexFile = async () => {
 		return;
 	}
 
-	solirom.data.repos.text.sha.index = result.sha;
+	solirom.data.repos.cflr.sha.index = result.sha;
 
 	teian.editor.setAttribute("status", "edit");
 	document.querySelector("#editor-loading-bar").style.display = "none";	
@@ -511,17 +511,18 @@ solirom.actions.saveScan = async (file) => {
 			body: formData
 		});
 
+		var newTranscriptionName = newScanName.replace("f", "t");
+		newTranscriptionName = newTranscriptionName.replace("png", "xml");
+		const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
 		const textSection = teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
-		var newTextName = newScanName.replace("f", "t");
-		newTextName = newTextName.replace("png", "xml");
-		textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "text": newTextName}));
-
+		textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
+		
 		const username = document.querySelector("kuberam-login-element").username;
 		const entryPath = "TODO";
 		const transcriptionFile = solirom.data.templates.transcriptionFile({"label": "", "href": entryPath});
-		await solirom.data.repos.text.client({
+		await solirom.data.repos.cflr.client({
 			method: "PUT",
-			path: newTextName,
+			path: newTranscriptionPath,
 			content: solirom.actions.b64EncodeUnicode(transcriptionFile),
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
@@ -533,13 +534,13 @@ solirom.actions.saveScan = async (file) => {
 		document.querySelector("#image-viewer-loading-bar").hide();	
 	} catch (error) {
 		console.error(error);
-		alert("Scanul nu poate fi salvat.");
+		document.querySelector("#image-viewer-loading-bar").hide();		
+		alert("Eroare la salvarea scanului.");
 		return;
-	}		
+	}
 };
 
 solirom.actions.composePath = (steps, separator) => {
-//solirom.data.work.volumeNumber
 	return steps.filter(Boolean).join(separator);
 };
 

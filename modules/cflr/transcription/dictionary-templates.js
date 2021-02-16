@@ -1,6 +1,7 @@
 import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
 import * as soliromUtils from "/modules/utils/solirom-utils.js";
+import MiniEditorComponent from '/modules/solirom-mini-editor/solirom-mini-editor.js';
 import LanguageSelectorComponent from '/modules/solirom-language-selector/solirom-language-selector.js';
 
 solirom.data.templates.transcriptionFile =
@@ -8,12 +9,6 @@ solirom.data.templates.transcriptionFile =
         <xi:include href="${props => props.href}" xpointer="/1/1" label="${props => props.label}" />
     </ab>`
 ;
-solirom.data.templates.transcriptionReference = 
-    solirom.actions.html`
-        <div class="transcription-reference list-group-item" data-href="${props => props.href}" title="${props => props.label}">
-            <div class="drag-handler"></div><div class="transcription-detail">${props => props.label}</div>
-        </div>
-    `;
 solirom.data.templates.entryFile =
     solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
         <entry>
@@ -26,7 +21,7 @@ solirom.data.templates.entryFile =
             <editor role="reviewer"/>
         </note>
         <note>
-            <idno type="lemma">TUNSURĂ</idno>
+            <idno type="lemma"/>
         </note>        
     </body>`
 ;
@@ -52,43 +47,12 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         font-family: cursive;
                         font-size: 12px;
                     }
+                    #master > * {
+                        display: inline-block;
+                    }
                     #master-toolbar {
                         padding: 5px;
                     }
-                    #master-content {
-                        height: 915px;
-                        padding: 5px;
-                        overflow: auto; 
-                        margin: 5px 0 5px 0;
-                    }
-                    .transcription-reference {
-                        width:  190px;
-                        height: 25px;
-                        border-radius: 5px;
-                        display: inline-block;
-                        background-color: #ededeb;
-                        margin-bottom: 5px;
-                    }  
-                    .transcription-reference > div {
-                        display: inline-block;
-                        position: relative;
-                        height: 100%;
-                        vertical-align: top;
-                    }                        
-                    .drag-handler {
-                        width: 29px;
-                        border-radius: 5px 0 0 5px;
-                        background: #807e7e url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MiIgaGVpZ2h0PSI0MiI+PGcgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIuOSIgPjxwYXRoIGQ9Ik0xNCAxNS43aDE0LjQiLz48cGF0aCBkPSJNMTQgMjEuNGgxNC40Ii8+PHBhdGggZD0iTTE0IDI3LjFoMTQuNCIvPjwvZz4KPC9zdmc+') no-repeat center;
-                        box-shadow: 0 2px 2px -2px;
-                        cursor: move;
-                    }  
-                    .transcription-detail {
-                        box-sizing: border-box;
-                        padding: 2px;                                                   
-                    } 
-                    .selected-transcription {
-                        background-color: #adacac;                                                   
-                    } 
                     ${soliromUtils.awesomeButtonStyle}                                      
                 </style> 
                 <div id="content">
@@ -107,7 +71,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                             </select> 
                             <solirom-infinite-loading-bar id="transcription-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>                           
                         </div>
-                        <div id="master-content" class="list-group"></div>
+                        <teian-editor id="transcription-editor" style="width: 95%; height: 910px;"></teian-editor>                        
                     </div>
                     <div id="detail">
                         <div id="detail-content">
@@ -121,7 +85,9 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             `
         ; 
         
-        this.masterContentContainer = shadowRoot.querySelector("#master-content");
+        this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
+        this.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
+
         this.sha = {
             transcription: "",
             entry: ""
@@ -133,16 +99,17 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
 
         shadowRoot.addEventListener("click", (event) => {
-            const target = event.target;
+            const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
                 const transcriptionReference = target.closest(".transcription-reference");
-                [...transcriptionReference.parentNode.querySelectorAll(".transcription-reference")].forEach(
-                    element => element.classList.remove("selected-transcription")
+                const currentIncludeElement = target.getRootNode().host;
+
+                [...currentIncludeElement.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
+                    includeElement => includeElement.shadowRoot.querySelector(".transcription-reference").classList.remove("selected-transcription")
                 );
                 transcriptionReference.classList.add("selected-transcription");
-                this.selectedEntryPath = [solirom.data.work.volumeNumber, solirom.data.repos.text.transcriptionsPath, transcriptionReference.dataset.href]
-                .filter(Boolean).join("/");
+                this.selectedEntryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionReference.dataset.href], "/");
             }
 
             if (target.matches("#switch-numbering-button")) {
@@ -152,7 +119,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         }, false);
 
         shadowRoot.addEventListener("dblclick", (event) => {
-            const target = event.target;
+            const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
                 this.editEntry(this.selectedEntryPath); 
@@ -197,13 +164,14 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     async displayTranscription(pbElement) {
         this.reset();
         this.pbElement = pbElement;
-        const transcriptionPath = pbElement.getAttribute("corresp");
+        var transcriptionPath = pbElement.getAttribute("corresp");
+        transcriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, transcriptionPath], "/");
         const pageStatus = pbElement.getAttribute("cert");
         this.pageStatusSelector.value = pageStatus;
 
         var result;
         try {
-            result = await solirom.data.repos.text.client({
+            result = await solirom.data.repos.cflr.client({
                 method: "GET",
                 path: transcriptionPath
             });
@@ -216,29 +184,37 @@ export default class TranscriptionEditorComponent extends HTMLElement {
 
         this.sha.transcription = result.sha;
         var transcription = solirom.actions.b64DecodeUnicode(result.content);
-        transcription = (new DOMParser()).parseFromString(transcription, "application/xml").documentElement;
-        const references = [...transcription.querySelectorAll("*|include")];
 
-        references.forEach((element) => {
-            const label = element.getAttribute("label");
-            const href = element.getAttribute("href");
-            this.masterContentContainer.insertAdjacentHTML("beforeend", solirom.data.templates.transcriptionReference({"label": label, "href": href})); 
-        });
-        Sortable.create(this.masterContentContainer, {
+		this.transcriptionEditor.setAttribute("status", "edit");
+        this.transcriptionEditor.setAttribute("src", "data:application/xml;" + transcription);  
+        
+        const abElement = this.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']");        
+        abElement.classList.add("list-group");
+        [...this.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")].forEach(
+            includeElement => {
+                includeElement.classList.add("list-group-item");
+                const transcriptionReference = includeElement.shadowRoot.querySelector(".transcription-reference");
+                transcriptionReference.dataset.href = includeElement.getAttribute("href");
+                transcriptionReference.setAttribute("title", includeElement.getAttribute("label"));
+            }
+        );
+        Sortable.create(abElement, {
             animation: 350
         });        
     }
     async editEntry(selectedEntryPath) {
         this.transcriptionLoadingBar.show();
+
         var result;
         try {
-            result = await solirom.data.repos.text.client({
+            result = await solirom.data.repos.cflr.client({
                 method: "GET",
                 path: selectedEntryPath
             });
             result = result.data;		
         } catch (error) {
             console.error(error);
+            this.transcriptionLoadingBar.hide();
             alert("Eroare la încărcarea intrării.");
             return;
         }
@@ -251,7 +227,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.transcriptionLoadingBar.hide();
     };    
     reset() {
-        this.masterContentContainer.innerHTML = "";
+        this.transcriptionEditor.reset();
         this.sha.transcription = "";
         this.sha.entry = "";
     }    
@@ -261,11 +237,54 @@ teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
 teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
-        <solirom-language-selector id="language-selector" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
+        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
         <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
     `
 ;
-
+teian.frameworkDefinition["t-ab-template"] = 
+    `
+        <div class="list-group">
+            <slot name="t-include"></slot>
+        </div>
+    `;
+teian.frameworkDefinition["t-include-template"] = 
+    `
+        <style>
+            .transcription-reference {
+                width:  190px;
+                height: 25px;
+                border-radius: 5px;
+                display: inline-block;
+                background-color: #ededeb;
+                margin-bottom: 5px;
+            }  
+            .transcription-reference > div {
+                display: inline-block;
+                position: relative;
+                height: 100%;
+                vertical-align: top;
+            }                        
+            .drag-handler {
+                width: 29px;
+                border-radius: 5px 0 0 5px;
+                background: #807e7e url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MiIgaGVpZ2h0PSI0MiI+PGcgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIuOSIgPjxwYXRoIGQ9Ik0xNCAxNS43aDE0LjQiLz48cGF0aCBkPSJNMTQgMjEuNGgxNC40Ii8+PHBhdGggZD0iTTE0IDI3LjFoMTQuNCIvPjwvZz4KPC9zdmc+') no-repeat center;
+                box-shadow: 0 2px 2px -2px;
+                cursor: move;
+            }  
+            .transcription-detail {
+                box-sizing: border-box;
+                padding: 2px;                                                   
+            } 
+            .selected-transcription {
+                background-color: #adacac;                                                   
+            } 
+        </style>
+        <div class="transcription-reference list-group-item" data-href="@href" title="@label">
+            <div class="drag-handler"></div><div class="transcription-detail" data-ref="@label"></div>
+        </div>        
+    `
+;    
+//<solirom-mini-editor id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-mini-editor>
 customElements.define("t-entry", class extends teian.divClass {
     constructor() {
         super();
@@ -277,6 +296,17 @@ customElements.define("t-form", class extends teian.divClass {
     }
 });
 customElements.define("t-orth", class extends teian.formControlClass {
+    constructor() {
+        super();
+    }
+});
+customElements.define("t-ab", class extends teian.divClass {
+    constructor() {
+        super();
+    }
+});
+
+customElements.define("t-include", class extends teian.formControlClass {
     constructor() {
         super();
     }
