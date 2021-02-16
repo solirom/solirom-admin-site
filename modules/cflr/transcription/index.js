@@ -373,31 +373,35 @@ document.addEventListener("change", async (event) => {
 			return;
 		}
 		solirom.data.work.volumeNumber = volumeNumber;
-		var volumeMetadataFilePath = "index-" + volumeNumber + ".xml";
-		volumeMetadataFilePath = solirom.data.workMetadataUrl.replace(/index(\-[0-9]{2})?.xml/, volumeMetadataFilePath);
+		const volumeMetadataFilePath = solirom.actions.composePath([volumeNumber, "index.xml"], "/");
 		solirom.data.workMetadataUrl = volumeMetadataFilePath;
-		
-		fetch("/api/data/" + solirom.data.workMetadataUrl, {
-			headers: {
-				"Cache-Control": "no-store, no-cache, must-revalidate"
-			}
-		})
-		.then((response) => response.text())
-		.then((data) => {
-			teian.editor.setAttribute("status", "edit");
-			teian.editor.setAttribute("src", "data:application/xml;" + data);
-			document.querySelector("#text-tools").style.display = "inline";
-			[...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
-			teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline"; 
+
+		var result;
+		try {
+			result = await solirom.data.repos.cflr.client({
+				method: "GET",
+				path: volumeMetadataFilePath
+			});
+			result = result.data;		
+		} catch (error) {
+			console.error(error);
+			alert("Lucrarea nu poate fi încărcată.");
+			return;
+		}
 	
-			document.querySelector("#scan").src = "";
-			document.querySelector("#add-scan").disabled = false;
-			document.querySelector("#replace-scan").disabled = false;
-			setTimeout(() => document.querySelector("#save-button").disabled = true, 100);   
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});		
+		solirom.data.repos.cflr.sha.index = result.sha;
+		const contents = solirom.actions.b64DecodeUnicode(result.content);
+
+		teian.editor.setAttribute("status", "edit");
+		teian.editor.setAttribute("src", "data:application/xml;" + contents);
+		document.querySelector("#text-tools").style.display = "inline";
+		[...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
+		teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline"; 
+
+		document.querySelector("#scan").src = "";
+		document.querySelector("#add-scan").disabled = false;
+		document.querySelector("#replace-scan").disabled = false;
+		setTimeout(() => document.querySelector("#save-button").disabled = true, 100);   
 	}
 }, false);
 
