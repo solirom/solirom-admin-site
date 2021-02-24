@@ -90,6 +90,48 @@ export default class TeianEditorComponent extends HTMLElement {
             break;
         }
     }
+
+    exportData() {
+        var content = this.shadowRoot.querySelector("#content > *");
+        content = (new XMLSerializer()).serializeToString(content);
+        content = content.replace('&nbsp;', '&#160;');
+        content = (new DOMParser()).parseFromString(content, 'application/xml');
+        var xsltDoc = (new DOMParser()).parseFromString(
+            `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                <xsl:output method="xml" indent="yes" omit-xml-declaration="yes" encoding="utf-8" />
+                <xsl:template match="*">
+                    <xsl:element name="{@data-name}" namespace="{@data-ns}">
+                        <xsl:apply-templates select="@*"/>
+                        <xsl:value-of select="@data-value"/>
+                        <xsl:apply-templates select="node()"/>
+                    </xsl:element>
+                </xsl:template>          
+                <xsl:template match="text()">
+                    <xsl:value-of select="normalize-space(.)"/>
+                </xsl:template>
+                <xsl:template match="@*">
+                    <xsl:copy>
+                        <xsl:apply-templates select="@*"/>
+                    </xsl:copy>
+                </xsl:template>
+                <xsl:template match="@data-name" />
+                <xsl:template match="@data-ns" />
+                <xsl:template match="@data-value" />
+                <xsl:template match="@slot" />
+                <xsl:template match="@class" />
+                <xsl:template match="@draggable" />
+                <xsl:template match="@style" />
+            </xsl:stylesheet>`, 'application/xml');
+    
+        var xsltProcessor = new XSLTProcessor();    
+        xsltProcessor.importStylesheet(xsltDoc);
+        const resultDoc = xsltProcessor.transformToDocument(content);
+        teian.dataInstances.outputData = resultDoc;
+        var load = (new XMLSerializer()).serializeToString(resultDoc);
+        //load = load.replace(/&amp;nbsp;/g, " ");    
+        
+        return load;
+    }
     
     reset() {
 		this.setAttribute("status", "new");
