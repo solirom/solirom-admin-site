@@ -36,7 +36,7 @@ export default class TeianEditorComponent extends HTMLElement {
         // set the mutation observer
         this.mutationObserverConfiguration = { attributes: true, childList: true, subtree: true };
         
-        const mutationObserverCallback = function(mutationsList, observer) {
+        const mutationObserverCallback = (mutationsList, observer) => {
             mutationsList.forEach(mutation => {
                 if (mutation.type === 'childList') {
                     if (!mutation.target.matches("div#content")) {
@@ -45,6 +45,7 @@ export default class TeianEditorComponent extends HTMLElement {
                 }
                 else if (mutation.type === 'attributes') {
                     document.dispatchEvent(teian.events.teianFileEdited);
+                    this.dispatchEvent(teian.events.teianFileEdited);
                 }                
             });
         };  

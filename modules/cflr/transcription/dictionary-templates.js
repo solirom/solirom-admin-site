@@ -52,6 +52,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                     }
                     #master-toolbar {
                         padding: 5px;
+                        width: 190px
                     }
                     ${soliromUtils.awesomeButtonStyle}                                      
                 </style> 
@@ -75,7 +76,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                     </div>
                     <div id="detail">
                         <div id="detail-content">
-                            <teian-editor id="entry-editor" style="width: 90%; height: 900px;">
+                            <teian-editor id="entry-editor" style="background-color: #ededeb;width: 90%; height: 900px;">
                                 <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
                                 <solirom-infinite-loading-bar id="entry-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
                             </teian-editor>                    
@@ -106,15 +107,25 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 const currentIncludeElement = target.getRootNode().host;
 
                 [...currentIncludeElement.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
-                    includeElement => includeElement.shadowRoot.querySelector(".transcription-reference").classList.remove("selected-transcription")
+                    includeElement => includeElement.classList.remove("selected-transcription")
                 );
-                transcriptionReference.classList.add("selected-transcription");
-                this.selectedEntryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionReference.dataset.href], "/");
+                currentIncludeElement.classList.add("selected-transcription");
+                this.selectedEntryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, currentIncludeElement.getAttribute("href")], "/");
             }
 
             if (target.matches("#switch-numbering-button")) {
                 document.querySelector("#numbering-editor").style.display = "inline-block";
                 document.querySelector("#transcription-editor").style.display = "none"; 	
+            }
+
+            if (target.matches("#save-entry-button")) {
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).join(" ");
+                const currentIncludeElement = this.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-transcription']").shadowRoot;
+                const transcriptionReference = currentIncludeElement.querySelector(".transcription-reference");
+                const transcriptionDetail = currentIncludeElement.querySelector(".transcription-detail");
+                transcriptionReference.setAttribute("title", transcriptionLabel);
+                transcriptionDetail.innerHTML = transcriptionLabel;
+                transcriptionDetail.dispatchEvent(new Event("input"));
             }
         }, false);
 
@@ -149,10 +160,14 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             
             if (target.matches("#language-selector")) {
                 const orthShadowRoot = target.getRootNode();
-                const orthElement = orthShadowRoot.querySelector("#orth-mini-editor");
+                const orthElement = orthShadowRoot.querySelector("#mini-editor");
                 orthElement.focus();
                 document.execCommand('insertHTML', false, event.detail);
             }
+        }, false);
+        
+        this.entryEditor.addEventListener("teian-file-edited", event => {
+            shadowRoot.querySelector("#save-entry-button").disabled = false;
         }, false);        
     }    
 
@@ -194,7 +209,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             includeElement => {
                 includeElement.classList.add("list-group-item");
                 const transcriptionReference = includeElement.shadowRoot.querySelector(".transcription-reference");
-                transcriptionReference.dataset.href = includeElement.getAttribute("href");
                 transcriptionReference.setAttribute("title", includeElement.getAttribute("label"));
             }
         );
@@ -237,8 +251,15 @@ teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
 teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
+        <style>
+            #mini-editor {
+                background-color: white;
+                padding: 3px;
+                border: 1px solid black;
+            }
+        </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
-        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
+        <div id="mini-editor" contenteditable="true" data-ref="#text"></div>
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
@@ -250,18 +271,24 @@ teian.frameworkDefinition["t-ab-template"] =
 teian.frameworkDefinition["t-include-template"] = 
     `
         <style>
-            .transcription-reference {
+            :host(*) {
+                background-color: #ededeb; 
                 width:  190px;
-                height: 25px;
-                border-radius: 5px;
-                display: inline-block;
-                background-color: #ededeb;
+                height: 25px;   
+                display: inline-block; 
                 margin-bottom: 5px;
+                border-radius: 5px;                
+            }      
+            :host(.selected-transcription) {
+                background-color: #adacac;                                                   
+            }                          
+            .transcription-reference {
+                display: inline-block;
+                width: 100%;
             }  
             .transcription-reference > div {
                 display: inline-block;
                 position: relative;
-                height: 100%;
                 vertical-align: top;
             }                        
             .drag-handler {
@@ -274,12 +301,9 @@ teian.frameworkDefinition["t-include-template"] =
             .transcription-detail {
                 box-sizing: border-box;
                 padding: 2px;                                                   
-            } 
-            .selected-transcription {
-                background-color: #adacac;                                                   
-            } 
+            }  
         </style>
-        <div class="transcription-reference list-group-item" data-href="@href" title="@label">
+        <div class="transcription-reference">
             <div class="drag-handler"></div><div class="transcription-detail" data-ref="@label"></div>
         </div>        
     `

@@ -15,7 +15,7 @@ teian.utils = {};
 teian.frameworkDefinition = {};
 
 teian.events.teianFileOpened = new CustomEvent("teian-file-opened");
-teian.events.teianFileEdited = new CustomEvent("teian-file-edited");
+teian.events.teianFileEdited = new CustomEvent("teian-file-edited", {bubbles: true});
 
 teian.xslTemplate =
     `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">

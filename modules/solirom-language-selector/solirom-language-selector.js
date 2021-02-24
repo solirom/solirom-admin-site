@@ -5,8 +5,7 @@ export default class LanguageSelectorComponent extends HTMLElement {
         this.attachShadow({mode: 'open'});
         const shadowRoot = this.shadowRoot;
         shadowRoot.innerHTML = `
-            <label for="language-selector">Alfabet</label>
-            <select id="language-selector"></select>
+            <select id="language-selector" title="Alfabet"></select>
             <div id="toolbar"></div>             
         `; 
         this.selector = shadowRoot.querySelector("#language-selector");

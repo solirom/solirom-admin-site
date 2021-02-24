@@ -57,7 +57,7 @@ document.addEventListener("fileSave", event => {
     document.querySelector("#save-button").disabled = true;
 }, false);
 
-document.addEventListener("teian-file-edited", event => {
+document.querySelector("#numbering-editor").addEventListener("teian-file-edited", event => {
     document.querySelector("#save-button").disabled = false;
 }, false);
 
@@ -67,10 +67,6 @@ document.addEventListener("kuberam.loginElement.events.logout", event => {
 
 document.addEventListener("teian-file-opened", event => {
 });
-
-document.addEventListener("teian-file-edited", event => {
-    document.querySelector("#save-button").disabled = false;
-}, false);
 
 document.addEventListener("click", async (event) => {
     const target = event.target;
