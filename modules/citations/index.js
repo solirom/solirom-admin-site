@@ -9,6 +9,7 @@ solirom.dataInstances.sha = "";
 solirom.dataInstances.url = "";
 solirom.dataInstances.selectedItemId = null;
 solirom.dataInstances.selectedItemSiblingId = null;
+solirom.data.indexName = "bflr";
     
 solirom.events.fileSave = new CustomEvent("fileSave");
 solirom.events.fileDelete = new CustomEvent("fileDelete");
@@ -79,10 +80,10 @@ document.querySelector("#search-button").addEventListener("click", function() {
     const searchDiv = document.querySelector("#search-result");
     searchDiv.innerHTML = '<i class="fas fa-spinner fa-spin-reverse fa-3x"></i>';
     
-    fetch("/old-api/api/citation-corpus/_search", {
+    fetch("/api/search/" + solirom.data.indexName, {
         method: "POST",
         body: '{"size": 2000, "from": 0, "query": {"boost": 1, "query": "' + queryString + '"}, "fields": ["l", "s"]}'
-    })
+    })    
     .then((response) => response.json())
     .then((data) => {
         document.querySelector("#total-entries-counter").value = data.total_hits;
