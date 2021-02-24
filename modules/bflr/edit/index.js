@@ -238,8 +238,8 @@ solirom.actions.saveFile = function() {
         }
     }).then(response => {
         if (response.status == 200) {
-        		teian.editor.setAttribute("status", "edit");
-        		// index the document
+            teian.editor.setAttribute("status", "edit");
+            // index the document
 	        fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
 	            method: "PUT",
 	            body: documentIndex
@@ -302,10 +302,10 @@ solirom.actions.scrollIntoView = elementId => {
 };
 
 fetch("../generate-index/generate-index.xsl")
-    .then((response) => response.text())
-    .then((data) => {
-        solirom.data.indexXSLT = (new DOMParser()).parseFromString(data, 'application/xml');
-    })
-    .catch(error => console.error('Error:', error));
+.then((response) => response.text())
+.then((data) => {
+    solirom.data.indexXSLT = (new DOMParser()).parseFromString(data, 'application/xml');
+})
+.catch(error => console.error('Error:', error));
         
 document.querySelector("#search-string").value = "collection:DLR2";

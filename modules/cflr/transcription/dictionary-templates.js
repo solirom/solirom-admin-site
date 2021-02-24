@@ -85,21 +85,25 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 </div>
             `
         ; 
+
+        this.transcription = {
+            "sha": "",
+            "path": ""
+        };
+        this.entry = {
+            "sha": "",
+            "path": ""
+        };
         
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         this.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
-
-        this.sha = {
-            transcription: "",
-            entry: ""
-        };
         this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
-        this.selectedEntryPath = "";
         this.pbElement = null;
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
         this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
+        this.entryLoadingBar = shadowRoot.querySelector("#entry-loading-bar");
 
-        shadowRoot.addEventListener("click", (event) => {
+        shadowRoot.addEventListener("click", async (event) => {
             const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
@@ -110,7 +114,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                     includeElement => includeElement.classList.remove("selected-transcription")
                 );
                 currentIncludeElement.classList.add("selected-transcription");
-                this.selectedEntryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, currentIncludeElement.getAttribute("href")], "/");
+                this.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, currentIncludeElement.getAttribute("href")], "/");
             }
 
             if (target.matches("#switch-numbering-button")) {
@@ -126,6 +130,9 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 transcriptionReference.setAttribute("title", transcriptionLabel);
                 transcriptionDetail.innerHTML = transcriptionLabel;
                 transcriptionDetail.dispatchEvent(new Event("input"));
+
+                await this.saveEntry();
+                await this.saveTranscription();
             }
         }, false);
 
@@ -133,7 +140,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
-                this.editEntry(this.selectedEntryPath); 
+                this.editEntry(); 
             }           
         }, false);        
         
@@ -176,7 +183,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     
     disconnectedCallback() {
     }
-    async displayTranscription(pbElement) {
+    async editTranscription(pbElement) {
         this.reset();
         this.pbElement = pbElement;
         var transcriptionPath = pbElement.getAttribute("corresp");
@@ -197,7 +204,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             return;
         }
 
-        this.sha.transcription = result.sha;
+        this.transcription.sha = result.sha;
+        this.transcription.path = transcriptionPath;
         var transcription = solirom.actions.b64DecodeUnicode(result.content);
 
 		this.transcriptionEditor.setAttribute("status", "edit");
@@ -216,14 +224,44 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             animation: 350
         });        
     }
-    async editEntry(selectedEntryPath) {
+    async saveTranscription() {
         this.transcriptionLoadingBar.show();
+        const username = document.querySelector("kuberam-login-element").username;
+        var data = this.transcriptionEditor.exportData();
+    
+        var result;
+        try {
+            result = await solirom.data.repos.cflr.client({
+                method: "PUT",
+                path: this.transcription.path,
+                content: solirom.actions.b64EncodeUnicode(data),
+                "sha": this.transcription.sha,
+                "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                "committer": {
+                    "email": username,
+                    "name": username
+                },
+            });
+            result = result.data.content;		
+        } catch (error) {
+            console.error(error);
+            alert("Lucrarea nu poate fi salvată.");
+            return;
+        }
+    
+        this.transcription.sha = result.sha;
+    
+        this.transcriptionEditor.setAttribute("status", "edit");
+        this.transcriptionLoadingBar.hide();        
+    }      
+    async editEntry() {
+        this.entryLoadingBar.show();
 
         var result;
         try {
             result = await solirom.data.repos.cflr.client({
                 method: "GET",
-                path: selectedEntryPath
+                path: this.entry.path
             });
             result = result.data;		
         } catch (error) {
@@ -233,17 +271,48 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             return;
         }
 
-        this.sha.entry = result.sha;
+        this.entry.sha = result.sha;
         const entry = solirom.actions.b64DecodeUnicode(result.content); 
         
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
-        this.transcriptionLoadingBar.hide();
-    };    
+        this.entryLoadingBar.hide();
+    }
+    async saveEntry() {
+        this.entryLoadingBar.show();
+        const username = document.querySelector("kuberam-login-element").username;
+        console.log(this.entryEditor);        
+        var data = this.entryEditor.exportData();
+    
+        var result;
+        try {
+            result = await solirom.data.repos.cflr.client({
+                method: "PUT",
+                path: this.entry.path,
+                content: solirom.actions.b64EncodeUnicode(data),
+                "sha": this.entry.sha,
+                "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                "committer": {
+                    "email": username,
+                    "name": username
+                },
+            });
+            result = result.data.content;		
+        } catch (error) {
+            console.error(error);
+            alert("Lucrarea nu poate fi salvată.");
+            return;
+        }
+    
+        this.entry.sha = result.sha;
+    
+        this.entryEditor.setAttribute("status", "edit");
+        this.entryLoadingBar.hide();        
+    }    
     reset() {
         this.transcriptionEditor.reset();
-        this.sha.transcription = "";
-        this.sha.entry = "";
+        this.transcription.sha = "";
+        this.entry.sha = "";
     }    
 };
 

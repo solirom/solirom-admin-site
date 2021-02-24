@@ -154,7 +154,7 @@ teian.actions.editTranscription = async (element) => {
     document.querySelector("#numbering-editor").style.display = "none";
     document.querySelector("#transcription-editor").style.display = "inline-block";
     const hostElement = element.getRootNode().host;
-    document.querySelector("transcription-editor").displayTranscription(hostElement);
+    document.querySelector("transcription-editor").editTranscription(hostElement);
 };
 
 teian.actions.selectPageBreak = (element) => {

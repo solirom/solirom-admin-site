@@ -10,6 +10,7 @@ solirom.dataInstances.sha = "";
 solirom.dataInstances.url = "";
 solirom.dataInstances.selectedItemId = null;
 solirom.dataInstances.selectedItemSiblingId = null;
+solirom.data.filePath = "solirom%2Fcitada-data%2Fcontents%2F";
 solirom.data.indexName = "citada";
     
 solirom.events.fileSave = new CustomEvent("fileSave");
@@ -55,119 +56,123 @@ document.addEventListener("teian-file-edited", event => {
     document.querySelector("#save-button").disabled = false;
 }, false);
 
-document.querySelector("#search-button").addEventListener("click", function() {
-    var queryString = document.querySelector("#search-string").value;
+document.addEventListener("click", event => {
+    const target = event.target;
+
+    if (target.matches("#search-button")) {
+        var queryString = document.querySelector("#search-string").value;
     
-    if (queryString == '') {
-        var username = document.querySelector("kuberam-login-element").username;
-        
-        if (username === "") {
-            return;
-        }
-        username = username.replace(/\./gi, "");       
-        username = username.replace(/@/gi, "");
-        username = username.replace(/-/gi, "");
-        username = username.replace(/_/gi, "");
-        username = username + "*";
-        
-        queryString = "a:" + username;
-    } else {
-        if (queryString.startsWith("sigla:")) {
-            queryString = queryString.replace(/,|\s/g, "")
-        }
-        
-    }
-    
-    const searchDiv = document.querySelector("#search-result");
-    searchDiv.innerHTML = '<i class="fas fa-spinner fa-spin-reverse fa-3x"></i>';
-    
-    fetch("/api/search/" + solirom.data.indexName, {
-        method: "POST",
-        body: '{"size": 2000, "from": 0, "query": {"boost": 1, "query": "' + queryString + '"}, "fields": ["*"]}'
-    })    
-    .then((response) => response.json())
-    .then((data) => {
-        document.querySelector("#total-entries-counter").value = data.total_hits;
-        
-        var processedData = [];
-        var correctedEntriesCounter = 0;
-        
-        data.hits.forEach(element => {
-            var item = {
-                "headword": element.fields.l,
-                "status": element.fields.s,
-                "id": element.id
+        if (queryString == '') {
+            var username = document.querySelector("kuberam-login-element").username;
+            
+            if (username === "") {
+                return;
             }
-            processedData.push(item);
-        });
-        processedData.sort((a, b) => (a.headword > b.headword) ? 1 : -1);
-        
-        var results = document.createDocumentFragment();
-        
-        processedData.forEach(element => {
-            const entryStatus = element.status;
+            username = username.replace(/\./gi, "");       
+            username = username.replace(/@/gi, "");
+            username = username.replace(/-/gi, "");
+            username = username.replace(/_/gi, "");
+            username = username + "*";
             
-            var entryDiv = document.createElement("div");
-            entryDiv.setAttribute("id", element.id);
+            queryString = "a:" + username;
+        } else {
+            if (queryString.startsWith("sigla:")) {
+                queryString = queryString.replace(/,|\s/g, "")
+            }
             
-            var titleSpan = document.createElement("span");
-            titleSpan.innerHTML = element.headword;
-            entryDiv.appendChild(titleSpan);     
-            
-            entryDiv.addEventListener('click', event => {
-                if (!document.querySelector("#save-button").disabled) {
-                    alert("Salvați intrarea curentă înainte de a edita alta!");
-                } else {
-                    const uuid = entryDiv.id;
-                    solirom.dataInstances.selectedItemId = solirom.dataInstances.uuid = uuid;
-                    const siblingElement = entryDiv.previousElementSibling || entryDiv.nextElementSibling || entryDiv;
-                    solirom.dataInstances.selectedItemSiblingId = siblingElement.id;
-                    solirom.dataInstances.url = "/data";
-                    
-                    fetch(solirom.dataInstances.url, {
-                        headers: {
-                            "Content-Location": solirom.dataInstances.uuid + ".xml"                            
-                        }
-                    })
-                    .then((response) => response.text())
-                    .then((data) => {
-                        teian.editor.setAttribute("status", "edit");
-                        teian.editor.setAttribute("src", "data:application/xml;" + data);
-                    })
-                    .catch((error) => {
-                        console.error('Error:', error);
-                    });                         
-                }
-            });  
-            
-            var entryStyle = entryDiv.style;
-            switch (entryStatus) {
-                case "elaborated":
-                entryStyle.backgroundColor = "#f5f2bc";
-                break;
-                case "corrected":
-                entryStyle.backgroundColor = "#9bf47e";
-                correctedEntriesCounter++;
-                break;
-                default:
-            }                    
-            
-            results.appendChild(entryDiv);            
-        });
-        
-        searchDiv.innerHTML = "";
-        searchDiv.appendChild(results);
-        document.querySelector("#corrected-entries-counter").value = correctedEntriesCounter;
-        
-        const scrolledIntoViewElement = solirom.dataInstances.selectedItemId || solirom.dataInstances.selectedItemSiblingId;
-        if (scrolledIntoViewElement !== null) {
-            solirom.actions.scrollIntoView(scrolledIntoViewElement);
         }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });      
-});
+        
+        const searchDiv = document.querySelector("#search-result");
+        searchDiv.innerHTML = '<i class="fas fa-spinner fa-spin-reverse fa-3x"></i>';
+        
+        fetch("/api/search/" + solirom.data.indexName, {
+            method: "POST",
+            body: '{"size": 2000, "from": 0, "query": {"boost": 1, "query": "' + queryString + '"}, "fields": ["*"]}'
+        })    
+        .then((response) => response.json())
+        .then((data) => {
+            document.querySelector("#total-entries-counter").value = data.total_hits;
+            
+            var processedData = [];
+            var correctedEntriesCounter = 0;
+            
+            data.hits.forEach(element => {
+                var item = {
+                    "headword": element.fields.l,
+                    "status": element.fields.s,
+                    "id": element.id
+                }
+                processedData.push(item);
+            });
+            processedData.sort((a, b) => (a.headword > b.headword) ? 1 : -1);
+
+            var results = "";
+            
+            processedData.forEach(element => {
+                var backgroundColor = "";
+                switch (element.status) {
+                    case "elaborated":
+                    backgroundColor = "#f5f2bc";
+                    break;
+                    case "corrected":
+                    backgroundColor = "#9bf47e";
+                    correctedEntriesCounter++;
+                    break;
+                    default:
+                } 
+
+                let entry =
+                    `
+                        <div id="${element.id}" class="list-item" style="background-color: ${backgroundColor}">
+                                <span><i>${element.headword}</i></span>                    
+                        </div>
+                    `;
+
+                results += entry;
+            });            
+            
+            searchDiv.innerHTML = results;
+            document.querySelector("#corrected-entries-counter").value = correctedEntriesCounter;
+            
+            const scrolledIntoViewElement = solirom.dataInstances.selectedItemId || solirom.dataInstances.selectedItemSiblingId;
+            if (scrolledIntoViewElement !== null) {
+                solirom.actions.scrollIntoView(scrolledIntoViewElement);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });        
+    }
+
+    if (target.matches("#search-result *")) {
+    	const source = target.closest("div.list-item");
+        
+        if (!document.querySelector("#save-button").disabled) {
+            alert("Salvați intrarea curentă înainte de a edita alta!");
+        } else {
+            const uuid = source.id;
+            solirom.dataInstances.selectedItemId = solirom.dataInstances.uuid = uuid;
+            const siblingElement = source.previousElementSibling || source.nextElementSibling || source;
+            solirom.dataInstances.selectedItemSiblingId = siblingElement.id;
+            solirom.dataInstances.url = "/data";
+            
+            fetch(solirom.dataInstances.url, {
+                headers: {
+                    "Content-Location": solirom.dataInstances.uuid + ".xml"                            
+                }
+            })
+            .then((response) => response.text())
+            .then((data) => {
+                teian.editor.setAttribute("status", "edit");
+                teian.editor.setAttribute("src", "data:application/xml;" + data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });                         
+        }        
+    }
+
+}, false);
 
 solirom.file.new = function() {
     const uuid = solirom.actions.generate_uuid();
@@ -183,18 +188,8 @@ solirom.file.save = function() {
     username = username.replace(/-/gi, "");
     username = username.replace(/_/gi, "");    
     const data = teian.utils.unloadData();
-    
-    /*
-    const load = {
-        "content": solirom.actions.b64EncodeUnicode(teian.utils.unloadData()),
-        "sha": solirom.dataInstances.sha,
-        "message": "Updated file " + solirom.dataInstances.uuid,
-        "author": {
-            "email": username,
-            "name": username
-        }        
-    };
-    */
+    const documentId = solirom.dataInstances.uuid;
+   
     const documentIndex = {
         "a": encodeURIComponent(username),
         "s": teian.dataInstances.outputData.querySelector("revisionDesc").getAttribute("status"),
@@ -207,59 +202,29 @@ solirom.file.save = function() {
         body: data,
         headers: {
             "Content-Type": "text/plain;charset=UTF-8",
-            "Content-Location": solirom.dataInstances.uuid + ".xml",
-            "X-Document-Id": solirom.dataInstances.uuid,
-            "X-Document-Index": JSON.stringify(documentIndex)
+            "Content-Location": documentId + ".xml"
         }
     })
     .then(function(response) {
         if (response.status == 200) {
-            document.dispatchEvent(solirom.events.fileSave);
-            alert("Intrarea a fost salvată.");
+            teian.editor.setAttribute("status", "edit");
+            // index the document
+	        fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
+	            method: "PUT",
+	            body: documentIndex
+	        })
+	        .then(response => {
+				if (response.status == 200) {
+		            document.dispatchEvent(solirom.events.fileSave);
+		            alert("Intrarea a fost salvată.");					
+				}
+	        })
+	        .catch(error => console.error('Error:', error)); 
         }
     }, function(error) {
         alert("Eroare la salvarea intrării.");
         console.error('Error:', error);
     });    
-    
-    /*
-    fetch("/data/api/v1/repos/solirom/citada-data/contents/" + solirom.dataInstances.uuid + ".xml", {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "token a6ddbb24ea29bee69670815cd4aca6b6703940cc"
-        },
-        body: JSON.stringify(load),
-    })
-    .then(function(response) {
-        if (!response.ok) {
-            throw Error(response.statusText);
-        }
-        
-        return response;
-    })    
-    .then((response) => {
-        console.log(response);
-        if (response.status !== 200) {
-            console.log('Looks like there was a problem. Status Code: ' + response.status);
-            return;
-        }
-
-        response.json().then((data) => {
-            console.log(data);
-            console.log(data.sha);
-            solirom.dataInstances.sha = data.sha;
-            console.log("solirom.dataInstances.sha, 2 = " + solirom.dataInstances.sha);
-            console.log(solirom.dataInstances.sha);
-            alert("Datele au fost salvate.");
-        });
-    
-    })    
-    .catch((error) => {
-        alert("Eroare la salvarea datelor.");
-        console.error('Error:', error);
-    });    
-    */
 };
 
 solirom.file.delete = function() {
@@ -312,3 +277,10 @@ solirom.actions.scrollIntoView = elementId => {
     document.getElementById(elementId).scrollIntoView();
     document.getElementById("content-container").scrollIntoView();
 };
+
+fetch("./generate-index/generate-index.xsl")
+.then((response) => response.text())
+.then((data) => {
+    solirom.data.indexXSLT = (new DOMParser()).parseFromString(data, 'application/xml');
+})
+.catch(error => console.error('Error:', error));
