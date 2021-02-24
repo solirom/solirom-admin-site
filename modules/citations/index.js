@@ -3,13 +3,14 @@ solirom.file = {};
 solirom.events = {};
 solirom.actions = {};
 solirom.dataInstances = {};
+solirom.data = {};
 
 solirom.dataInstances.uuid = "";
 solirom.dataInstances.sha = "";
 solirom.dataInstances.url = "";
 solirom.dataInstances.selectedItemId = null;
 solirom.dataInstances.selectedItemSiblingId = null;
-solirom.data.indexName = "bflr";
+solirom.data.indexName = "citada";
     
 solirom.events.fileSave = new CustomEvent("fileSave");
 solirom.events.fileDelete = new CustomEvent("fileDelete");
@@ -82,7 +83,7 @@ document.querySelector("#search-button").addEventListener("click", function() {
     
     fetch("/api/search/" + solirom.data.indexName, {
         method: "POST",
-        body: '{"size": 2000, "from": 0, "query": {"boost": 1, "query": "' + queryString + '"}, "fields": ["l", "s"]}'
+        body: '{"size": 2000, "from": 0, "query": {"boost": 1, "query": "' + queryString + '"}, "fields": ["*"]}'
     })    
     .then((response) => response.json())
     .then((data) => {
