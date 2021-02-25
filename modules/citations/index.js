@@ -195,7 +195,7 @@ solirom.file.save = function() {
         "s": teian.dataInstances.outputData.querySelector("revisionDesc").getAttribute("status"),
         "l": encodeURIComponent(teian.dataInstances.outputData.querySelector("orth").textContent),
         "sigla": Array.from(teian.dataInstances.outputData.querySelectorAll("bibl > ptr")).map(element => encodeURIComponent(element.getAttribute("target").replace(",", "").replace(" ", ""))).join(" ")
-    }
+    } 
 
     fetch("/data", {
         method: "POST",
@@ -211,7 +211,7 @@ solirom.file.save = function() {
             // index the document
 	        fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
 	            method: "PUT",
-	            body: documentIndex
+	            body: JSON.stringify(documentIndex)
 	        })
 	        .then(response => {
 				if (response.status == 200) {
@@ -230,16 +230,29 @@ solirom.file.save = function() {
 solirom.file.delete = function() {
     var result = confirm("Ștergeți intrarea?");
     if (result) {
+        const documentId = solirom.dataInstances.uuid;
+
         fetch("/data", {
             method: "DELETE",
             headers: {
                 "Content-Type": "text/plain;charset=UTF-8",
-                "Content-Location": solirom.dataInstances.uuid + ".xml",
-                "X-Document-Id": solirom.dataInstances.uuid
+                "Content-Location": documentId + ".xml"
             }
         }).then(function(response) {
             if (response.status == 200) {
-                document.dispatchEvent(solirom.events.fileDelete);
+        		// remove index of the document
+                fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
+                    method: "DELETE"
+                })
+                .then(response => {
+                    if (response.status == 200) {
+                        document.dispatchEvent(solirom.events.fileDelete);
+                    }
+                })
+                .catch(error => {
+                    alert("Eroare la ștergerea intrării.");
+                    console.error('Error:', error)
+                });
             }
         }, function(error) {
             alert("Eroare la ștergerea intrării.");
