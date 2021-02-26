@@ -12,7 +12,7 @@ solirom.data.templates.transcriptionFile =
 solirom.data.templates.entryFile =
     solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
         <entry>
-            <form type="headword">
+            <form type="lemma">
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
             </form>
         </entry>
@@ -21,10 +21,14 @@ solirom.data.templates.entryFile =
             <editor role="reviewer"/>
         </note>
         <note>
-            <idno type="lemma"/>
+            <idno type="lexicon"/>
         </note>        
     </body>`
 ;
+solirom.data.templates.entryReference =
+    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="" class="list-group-item" draggable="true"></t-include>`
+;        
+
 
 export default class TranscriptionEditorComponent extends HTMLElement {
     constructor() {
@@ -61,7 +65,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         <div id="master-toolbar">
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
-                            <button id="move-entry-button" class="fa-button" title="Mutare intrare">&#xf0c7;</button>
                             <button id="switch-numbering-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
                             <label for="transcription-status-selector">Stare pagină</label>
@@ -97,11 +100,14 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         this.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
+        this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
+
         this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
         this.pbElement = null;
+
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
-        this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
         this.entryLoadingBar = shadowRoot.querySelector("#entry-loading-bar");
+        this.saveEntryButton = shadowRoot.querySelector("#save-entry-button");
 
         shadowRoot.addEventListener("click", async (event) => {
             const target = event.composedPath()[0];
@@ -110,10 +116,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 const transcriptionReference = target.closest(".transcription-reference");
                 const currentIncludeElement = target.getRootNode().host;
 
-                [...currentIncludeElement.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
-                    includeElement => includeElement.classList.remove("selected-transcription")
-                );
-                currentIncludeElement.classList.add("selected-transcription");
+                this.toggleEntryReference(currentIncludeElement);
                 this.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, currentIncludeElement.getAttribute("href")], "/");
             }
 
@@ -122,9 +125,13 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 document.querySelector("#transcription-editor").style.display = "none"; 	
             }
 
+            if (target.matches("#add-entry-button")) {
+                await this.addEntry();
+            }            
+
             if (target.matches("#save-entry-button")) {
                 const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).join(" ");
-                const currentIncludeElement = this.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-transcription']").shadowRoot;
+                const currentIncludeElement = this.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = currentIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = currentIncludeElement.querySelector(".transcription-detail");
                 transcriptionReference.setAttribute("title", transcriptionLabel);
@@ -184,6 +191,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     disconnectedCallback() {
     }
     async editTranscription(pbElement) {
+        this.transcriptionLoadingBar.show();
         this.reset();
         this.pbElement = pbElement;
         var transcriptionPath = pbElement.getAttribute("corresp");
@@ -200,6 +208,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data;		
         } catch (error) {
             console.error(error);
+            this.transcriptionLoadingBar.hide();
             alert("Eroare la încărcarea transcrierii.");
             return;
         }
@@ -222,7 +231,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         );
         Sortable.create(abElement, {
             animation: 350
-        });        
+        });  
+        this.transcriptionLoadingBar.hide();      
     }
     async saveTranscription() {
         this.transcriptionLoadingBar.show();
@@ -245,6 +255,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
+            this.transcriptionLoadingBar.hide();
             alert("Lucrarea nu poate fi salvată.");
             return;
         }
@@ -266,7 +277,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data;		
         } catch (error) {
             console.error(error);
-            this.transcriptionLoadingBar.hide();
+            this.entryLoadingBar.hide();
             alert("Eroare la încărcarea intrării.");
             return;
         }
@@ -300,7 +311,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            alert("Lucrarea nu poate fi salvată.");
+            this.entryLoadingBar.hide();
+            alert("Intrarea nu poate fi salvată.");
             return;
         }
     
@@ -308,7 +320,51 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     
         this.entryEditor.setAttribute("status", "edit");
         this.entryLoadingBar.hide();        
-    }    
+    }  
+    async addEntry() {
+        this.entryLoadingBar.show();  
+        var entryId = "";
+
+        try {
+            entryId = await fetch("https://uuid.solirom.ro/cflr-" + solirom.data.work.id).then(response => response.text());
+        } catch (error) {
+            console.error(error);
+            this.entryLoadingBar.hide();
+            alert("Nu se poate genera un identificator pentru intrare.");
+            return;
+        }  
+        const transcriptionEditor = this.transcriptionEditor.shadowRoot;
+        const newEntry = solirom.data.templates.entryFile({"id": entryId, "author": document.querySelector("kuberam-login-element").username});
+        const newEntryPath = "entries/" + entryId + ".xml";
+        const newEntryReference = solirom.data.templates.entryReference({"entryPath": newEntryPath});
+        const currentEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
+        currentEntryReferenceElement.insertAdjacentHTML("afterend", newEntryReference);
+        const newEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][href = '" + newEntryPath + "']");
+        this.toggleEntryReference(newEntryReferenceElement);
+
+        this.entryEditor.setAttribute("status", "edit");
+        this.entryEditor.setAttribute("src", "data:application/xml;" + newEntry);
+
+        try {
+            this.entry.path = newEntryPath;
+
+            await this.saveEntry();
+            await this.saveTranscription();
+        } catch (error) {
+            console.error(error);
+            this.entryLoadingBar.hide();
+            alert("Intrarea nu poate fi creată.");
+            return;
+        }
+
+        this.entryLoadingBar.hide();
+    }
+    toggleEntryReference(currentEntryReference) {
+        [...currentEntryReference.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
+            entryReference => entryReference.classList.remove("selected-entry-reference")
+        );
+        currentEntryReference.classList.add("selected-entry-reference");        
+    }
     reset() {
         this.transcriptionEditor.reset();
         this.transcription.sha = "";
@@ -348,7 +404,7 @@ teian.frameworkDefinition["t-include-template"] =
                 margin-bottom: 5px;
                 border-radius: 5px;                
             }      
-            :host(.selected-transcription) {
+            :host(.selected-entry-reference) {
                 background-color: #adacac;                                                   
             }                          
             .transcription-reference {

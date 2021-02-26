@@ -227,7 +227,7 @@ solirom.actions.saveFile = function() {
     
 	var xsltProcessor = new XSLTProcessor();
 	xsltProcessor.importStylesheet(solirom.data.indexXSLT);
-	const documentIndex = xsltProcessor.transformToDocument(outputData).documentElement.textContent;     
+	const documentIndex = xsltProcessor.transformToDocument(outputData).documentElement.textContent; 
     
     fetch(solirom.data.url, {
         method: method,

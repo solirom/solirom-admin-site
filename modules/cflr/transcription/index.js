@@ -28,7 +28,8 @@ solirom.data.repos = {
 };
 solirom.data.work = {
 	"volumeNumber": "",
-	"textSection": "body"
+	"textSection": "body",
+	"id": ""
 };
 solirom.data.templates = {
 	"volumeSelectorOption": solirom.actions.html`
@@ -165,6 +166,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	solirom.data.repos.lowResScan.apiKey = solirom.data.search.rawResult.find(record => record.id === selectedItemId).fields["lowres-key"];
 
 	const [user, repoName] = solirom.data.search.rawResult.find(record => record.id === selectedItemId).fields["text-url"].split('/');
+	solirom.data.work.id = repoName;
 	const key = solirom.data.search.rawResult.find(record => record.id === selectedItemId).fields["text-key"];
 	solirom.data.repos.cflr.client = githubClient.defaults({
 		headers: {
