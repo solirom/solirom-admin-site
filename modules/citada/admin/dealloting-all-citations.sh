@@ -3,9 +3,7 @@
 
 citations_dir=/home/claudius/workspace/repositories/git/citada-data/
 
-#find "$citations_dir" -name "*" -print0 | xargs -0 grep -l $1 | xargs -0 grep "corrected"
-
-grep -rl "$1" "$citations_dir" | xargs sed -i 's/redactor/former-redactor/g'
+grep -rl "$1" "$citations_dir" | xargs sed -i 's/"redactor"/"former-redactor"/g'
 
 #count number
 # ... | wc -l

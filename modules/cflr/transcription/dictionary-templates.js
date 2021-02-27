@@ -111,9 +111,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
 
         shadowRoot.addEventListener("click", async (event) => {
             const target = event.composedPath()[0];
-            
+         
             if (target.matches(".transcription-reference, .transcription-reference *")) {
-                const transcriptionReference = target.closest(".transcription-reference");
                 const currentIncludeElement = target.getRootNode().host;
 
                 this.toggleEntryReference(currentIncludeElement);
@@ -292,16 +291,15 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     async saveEntry() {
         this.entryLoadingBar.show();
         const username = document.querySelector("kuberam-login-element").username;
-        console.log(this.entryEditor);        
-        var data = this.entryEditor.exportData();
-    
+        const data = this.entryEditor.exportData();
+
         var result;
         try {
             result = await solirom.data.repos.cflr.client({
                 method: "PUT",
                 path: this.entry.path,
+                "sha": this.entry.sha,                
                 content: solirom.actions.b64EncodeUnicode(data),
-                "sha": this.entry.sha,
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -346,7 +344,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.entryEditor.setAttribute("src", "data:application/xml;" + newEntry);
 
         try {
-            this.entry.path = newEntryPath;
+            this.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newEntryPath], "/");
 
             await this.saveEntry();
             await this.saveTranscription();
@@ -410,6 +408,7 @@ teian.frameworkDefinition["t-include-template"] =
             .transcription-reference {
                 display: inline-block;
                 width: 100%;
+                height: 25px; 
             }  
             .transcription-reference > div {
                 display: inline-block;
@@ -425,7 +424,7 @@ teian.frameworkDefinition["t-include-template"] =
             }  
             .transcription-detail {
                 box-sizing: border-box;
-                padding: 2px;                                                   
+                padding: 2px;
             }  
         </style>
         <div class="transcription-reference">
