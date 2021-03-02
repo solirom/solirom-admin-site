@@ -53,6 +53,10 @@ solirom.actions.responseStatus = (response) => {
 	}
 };
 
+solirom.actions.replaceDiacritics = () => {
+
+};
+
 solirom.gitea = {
 	"accessToken": "",
 	"apiBaseUrl": "",

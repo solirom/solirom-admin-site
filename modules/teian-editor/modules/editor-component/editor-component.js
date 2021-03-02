@@ -94,7 +94,12 @@ export default class TeianEditorComponent extends HTMLElement {
     exportData() {
         var content = this.shadowRoot.querySelector("#content > *");
         content = (new XMLSerializer()).serializeToString(content);
-        content = content.replace('&nbsp;', '&#160;');
+        content = content.replace("&nbsp;", "&#160;");
+        content = content.replace("ş", "ș");
+        content = content.replace("ţ", "ț");
+        content = content.replace("Ş", "Ș");
+        content = content.replace("Ţ", "Ț");
+
         content = (new DOMParser()).parseFromString(content, 'application/xml');
         var xsltDoc = (new DOMParser()).parseFromString(
             `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
