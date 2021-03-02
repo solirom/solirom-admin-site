@@ -4,10 +4,7 @@ import * as soliromUtils from "/modules/utils/solirom-utils.js";
 import MiniEditorComponent from '/modules/solirom-mini-editor/solirom-mini-editor.js';
 import LanguageSelectorComponent from '/modules/solirom-language-selector/solirom-language-selector.js';
 
-solirom.data.templates.transcriptionFile =
-    solirom.actions.html`<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation">
-        <xi:include href="${props => props.href}" xpointer="/1/1" label="${props => props.label}" />
-    </ab>`
+solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation"/>`
 ;
 solirom.data.templates.entryFile =
     solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
@@ -28,7 +25,10 @@ solirom.data.templates.entryFile =
 solirom.data.templates.entryReference =
     solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="" class="list-group-item" draggable="true"></t-include>`
 ;        
-
+solirom.data.entry = {
+	"sha": "",
+	"path": ""
+};
 
 export default class TranscriptionEditorComponent extends HTMLElement {
     constructor() {
@@ -89,15 +89,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             `
         ; 
 
-        this.transcription = {
-            "sha": "",
-            "path": ""
-        };
-        this.entry = {
-            "sha": "",
-            "path": ""
-        };
-        
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         this.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
         this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
@@ -117,7 +108,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 this.selectedIncludeElement = selectedIncludeElement;
 
                 this.toggleEntryReference(selectedIncludeElement);
-                this.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, selectedIncludeElement.getAttribute("href")], "/");
+                solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, selectedIncludeElement.getAttribute("href")], "/");
             }
 
             if (target.matches("#switch-numbering-button")) {
@@ -266,8 +257,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             this.transcriptionLoadingBar.hide();
             alert("Lucrarea nu poate fi salvată.");
             return;
-        }
-    
+        }    
         solirom.data.transcription.sha = result.sha;
     
         this.transcriptionEditor.setAttribute("status", "edit");
@@ -282,7 +272,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     async editEntry() {
         this.entryLoadingBar.show();
 
-        const entry = await this._getEntry(this.entry.path);
+        const entry = await this._getEntry(solirom.data.entry.path);
 
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
@@ -303,8 +293,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         try {
             result = await solirom.data.repos.cflr.client({
                 method: "PUT",
-                path: this.entry.path,
-                "sha": this.entry.sha,                
+                path: solirom.data.entry.path,
+                "sha": solirom.data.entry.sha,                
                 content: solirom.actions.b64EncodeUnicode(data),
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
@@ -320,7 +310,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             return;
         }
     
-        this.entry.sha = result.sha;
+        solirom.data.entry.sha = result.sha;
     
         this.entryEditor.setAttribute("status", "edit");
         this.entryLoadingBar.hide();        
@@ -347,16 +337,23 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         const newEntry = solirom.data.templates.entryFile({"id": entryId, "author": document.querySelector("kuberam-login-element").username});
         const newEntryPath = "entries/" + entryId + ".xml";
         const newEntryReference = solirom.data.templates.entryReference({"entryPath": newEntryPath});
+
         const currentEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
-        currentEntryReferenceElement.insertAdjacentHTML("afterend", newEntryReference);
+        if (currentEntryReferenceElement === null) {
+            transcriptionEditor.querySelector("*[data-name = 'ab']").insertAdjacentHTML("beforeend", newEntryReference);
+        } else {
+            currentEntryReferenceElement.insertAdjacentHTML("afterend", newEntryReference);
+        }
+        
         const newEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][href = '" + newEntryPath + "']");
+
         this.toggleEntryReference(newEntryReferenceElement);
 
         this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + newEntry);
 
         try {
-            this.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newEntryPath], "/");
+            solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newEntryPath], "/");
 
             await this.saveEntry();
             await this.saveTranscription();
@@ -387,8 +384,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         try {
             await solirom.data.repos.cflr.client({
                 method: "DELETE",
-                path: this.entry.path,
-                "sha": this.entry.sha,
+                path: solirom.data.entry.path,
+                "sha": solirom.data.entry.sha,
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -424,33 +421,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.transcriptionLoadingBar.hide();
     }
 
-    /**
-     * Gets an entry
-     * @private
-     * @return {string}
-     */    
-    async _getEntry() {
-        var result;
-
-        try {
-            result = await solirom.data.repos.cflr.client({
-                method: "GET",
-                path: this.entry.path
-            });
-            result = result.data;		
-        } catch (error) {
-            console.error(error);
-            this.entryLoadingBar.hide();
-            alert("Eroare la încărcarea intrării.");
-            return;
-        }
-
-        this.entry.sha = result.sha;
-
-        return solirom.actions.b64DecodeUnicode(result.content);
-
-    }
-
     toggleEntryReference(currentEntryReference) {
         [...currentEntryReference.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
             entryReference => entryReference.classList.remove("selected-entry-reference")
@@ -460,8 +430,45 @@ export default class TranscriptionEditorComponent extends HTMLElement {
     reset() {
         this.transcriptionEditor.reset();
         solirom.data.transcription.sha = "";
-        this.entry.sha = "";
+        solirom.data.entry.sha = "";
     }    
+};
+
+/**
+ * Gets an entry
+ * @private
+ * @return {string}
+ */    
+solirom.actions._getEntry = async () =>  {
+    const path = solirom.data.entry.path;
+    var result;
+
+    try {
+        result = await solirom.data.repos.cflr.client({
+            method: "GET",
+            path: path,
+			headers: {
+				'If-None-Match': ''
+			  }	
+        });
+        result = result.data;		
+    } catch (error) {
+        console.error(error);
+        this.entryLoadingBar.hide();
+        alert("Eroare la încărcarea intrării.");
+        return;
+    }
+
+    const sha = result.sha;
+    const contents = solirom.actions.b64DecodeUnicode(result.content);
+    solirom.data.entry.sha = sha;
+
+    return {
+        "path": path,
+        "sha": sha,
+        "contents": contents
+    };
+
 };
 
 teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;

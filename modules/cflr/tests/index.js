@@ -148,7 +148,10 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	try {
 		result = await solirom.data.repos.cflr.client({
 			method: "GET",
-			path: "index.xml"
+			path: "index.xml",
+			headers: {
+				'If-None-Match': ''
+			  }	
 		});
 		result = result.data;		
 	} catch (error) {
@@ -344,7 +347,10 @@ document.addEventListener("change", async (event) => {
 		try {
 			result = await solirom.data.repos.cflr.client({
 				method: "GET",
-				path: volumeMetadataFilePath
+				path: volumeMetadataFilePath,
+				headers: {
+					'If-None-Match': ''
+				  }	
 			});
 			result = result.data;		
 		} catch (error) {
@@ -478,34 +484,46 @@ solirom.actions.saveScan = async (file) => {
 			method: "POST",
 			body: formData
 		});
-
-		var newTranscriptionName = newScanName.replace("f", "t");
-		newTranscriptionName = newTranscriptionName.replace("png", "xml");
-		const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
-		const textSection = teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
-		textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
-		
-		const username = document.querySelector("kuberam-login-element").username;
-		const entryPath = "TODO";
-		const transcriptionFile = solirom.data.templates.transcriptionFile({"label": "", "href": entryPath});
-		await solirom.data.repos.cflr.client({
-			method: "PUT",
-			path: newTranscriptionPath,
-			content: solirom.actions.b64EncodeUnicode(transcriptionFile),
-			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
-			"committer": {
-				"email": username,
-				"name": username
-			},
-		});
-
-		document.querySelector("#image-viewer-loading-bar").hide();	
 	} catch (error) {
 		console.error(error);
 		document.querySelector("#image-viewer-loading-bar").hide();		
 		alert("Eroare la salvarea scanului.");
 		return;
 	}
+	document.querySelector("#image-viewer-loading-bar").hide();	
+
+	document.querySelector("#editor-loading-bar").show();	
+	var newTranscriptionName = newScanName.replace("f", "t");
+	newTranscriptionName = newTranscriptionName.replace("png", "xml");
+	const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
+	const textSection = teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
+	textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
+	
+	const username = document.querySelector("kuberam-login-element").username;
+
+	var result;
+	try {
+		result = await solirom.data.repos.cflr.client({
+			"method": "PUT",
+			"path": newTranscriptionPath,
+			"content": solirom.actions.b64EncodeUnicode(solirom.data.templates.transcriptionFile),
+			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
+			"committer": {
+				"email": username,
+				"name": username
+			},
+		});
+		result = result.data.content;
+	} catch (error) {
+		console.error(error);
+		document.querySelector("#editor-loading-bar").hide();		
+		alert("Eroare la salvarea transcrierii.");
+
+		return;
+	}
+	solirom.data.transcription.sha = result.sha;
+
+	document.querySelector("#editor-loading-bar").hide();		
 };
 
 solirom.actions.deleteScan = async () => {
@@ -525,19 +543,34 @@ solirom.actions.deleteScan = async () => {
 			await fetch(solirom.data.repos.lowResScan.basePath + scanName, {
 				method: "DELETE"
 			});	
-			document.querySelector("#scan").src = "";
-
-			await solirom.actions.deleteTranscription();
-
-			document.querySelector("#image-viewer-loading-bar").hide();					
-
-			await solirom.actions.saveMetadata();
 		} catch (error) {
 			console.error(error);
 			document.querySelector("#image-viewer-loading-bar").hide();
 			alert("Eroare la ștergerea scanului.");
 			return;
-		}		
+		}
+		document.querySelector("#scan").src = "";		
+		document.querySelector("#image-viewer-loading-bar").hide();
+
+		document.querySelector("#editor-loading-bar").show();
+		try {
+			await solirom.actions.deleteTranscription();
+		} catch (error) {
+			console.error(error);
+			document.querySelector("#editor-loading-bar").hide();
+			alert("Eroare la ștergerea transcrierii.");
+			return;
+		}
+
+		try {
+			await solirom.actions.saveMetadata();
+		} catch (error) {
+			console.error(error);
+			document.querySelector("#editor-loading-bar").hide();
+			alert("Eroare la salvarea metadatelor.");
+			return;
+		}
+		document.querySelector("#editor-loading-bar").hide();		
 	}
 };
 
@@ -547,30 +580,60 @@ solirom.actions.deleteScan = async () => {
  * @return void
  */ 
 solirom.actions.deleteTranscription = async () => {
-	document.querySelector("#editor-loading-bar").show();
 	const username = document.querySelector("kuberam-login-element").username;
 
 	try {
 		await solirom.actions._getTranscription();
-		console.log(solirom.data.transcription.contents);
+	} catch (error) {
+		console.error(error);
+		document.querySelector("#editor-loading-bar").hide();
+		alert("Eroare la încărcarea transcrierii.");
+		return;
+	}	
+	const transcriptionDocument = (new DOMParser()).parseFromString(solirom.data.transcription.contents, "application/xml").documentElement;
+	const entryIncludeElements = transcriptionDocument.querySelectorAll("*|include");
 
+	try {
 		await solirom.data.repos.cflr.client({
-			method: "DELETE",
-			path: solirom.data.transcription.path,
+			"method": "DELETE",
+			"path": solirom.data.transcription.path,
 			"sha": solirom.data.transcription.sha,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
 				"email": username,
 				"name": username
 			},
-		});
+		});	
 	} catch (error) {
 		console.error(error);
 		document.querySelector("#editor-loading-bar").hide();
 		alert("Eroare la ștergerea transcrierii.");
 		return;
-	}
-	document.querySelector("#editor-loading-bar").hide();	
+	}	
+
+	try {
+		for (const entryIncludeElement of entryIncludeElements) {
+			solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, entryIncludeElement.getAttribute("href")], "/");
+			const entryMetadata = await solirom.actions._getEntry();
+
+			await solirom.data.repos.cflr.client({
+				"method": "DELETE",
+				"path": entryMetadata.path,
+				"sha": entryMetadata.sha,
+				"message": (new Date()).toISOString().split('.')[0] + ", " + username,
+				"committer": {
+					"email": username,
+					"name": username
+				},
+			});
+		}
+	} catch (error) {
+		console.error(error);
+		document.querySelector("#editor-loading-bar").hide();
+		alert("Eroare la ștergerea intrărilor asociate transcrierii.");
+
+		return;
+	}	
 };
 
 solirom.actions._getTranscription = async () => {
@@ -578,7 +641,10 @@ solirom.actions._getTranscription = async () => {
 	try {
 		result = await solirom.data.repos.cflr.client({
 			method: "GET",
-			path: solirom.data.transcription.path
+			path: solirom.data.transcription.path,
+			headers: {
+				'If-None-Match': ''
+			  }			
 		});
 		result = result.data;		
 	} catch (error) {
