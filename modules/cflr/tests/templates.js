@@ -151,6 +151,7 @@ teian.actions.displayScan = (element) => {
 };
 
 solirom.actions.editTranscription = async (element) => {
+    teian.actions.displayScan(element);
     solirom.actions.displayDataEditor();
     const hostElement = element.getRootNode().host;
     document.querySelector("data-editor").editTranscription(hostElement);
