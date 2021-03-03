@@ -75,7 +75,6 @@ export default class DataEditorComponent extends HTMLElement {
                                 <option value="validated">validată</option>
                                 <option value="reviewed">revizuită</option>
                             </select> 
-                            <solirom-infinite-loading-bar id="transcription-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>                           
                         </div>
                         <teian-editor id="transcription-editor" style="width: 95%; height: 910px;"></teian-editor>                        
                     </div>
@@ -83,7 +82,6 @@ export default class DataEditorComponent extends HTMLElement {
                         <div id="detail-content">
                             <teian-editor id="entry-editor" style="background-color: #ededeb;width: 90%; height: 900px;">
                                 <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
-                                <solirom-infinite-loading-bar id="entry-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
                             </teian-editor>                    
                         </div>
                     </div> 
@@ -94,13 +92,11 @@ export default class DataEditorComponent extends HTMLElement {
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
-        this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
 
         this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
         this.pbElement = null;
 
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
-        this.entryLoadingBar = shadowRoot.querySelector("#entry-loading-bar");
         this.saveEntryButton = shadowRoot.querySelector("#save-entry-button");
 
         shadowRoot.addEventListener("click", async (event) => {
@@ -200,7 +196,7 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async editTranscription(pbElement) {
-        this.transcriptionLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
         this.reset();
         this.pbElement = pbElement;
         const pageStatus = pbElement.getAttribute("cert");
@@ -209,14 +205,7 @@ export default class DataEditorComponent extends HTMLElement {
         var transcriptionPath = pbElement.getAttribute("corresp");
         solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, transcriptionPath], "/");
 
-        try {
-            await solirom.actions._getTranscription();
-        } catch (error) {
-            console.error(error);
-            this.transcriptionLoadingBar.hide();
-            alert("Eroare la încărcarea transcrierii.");
-            return;
-        }        
+        await solirom.actions._globalGetTranscription();        
 
 		solirom.controls.transcriptionEditor.setAttribute("status", "edit");
         solirom.controls.transcriptionEditor.setAttribute("src", "data:application/xml;" + solirom.data.transcription.contents);  
@@ -234,21 +223,11 @@ export default class DataEditorComponent extends HTMLElement {
             animation: 350,
             onEnd: async () => {
                 solirom.controls.loadingSpinner.show();
-                const dataEditor = document.querySelector("data-editor");
-                console.log(dataEditor.transcriptionEditor);
-
-                try {
-                    await dataEditor.saveTranscription();
-                } catch (error) {
-                    console.error(error);
-                    dataEditor.transcriptionLoadingBar.hide();
-                    alert("Transcrierea nu poate fi salvată.");
-                    return;
-                }                
+                await document.querySelector("data-editor").saveTranscription();                
                 solirom.controls.loadingSpinner.hide();
             }
-        });  
-        solirom.controls.spinner.hide();      
+        });
+        window.solirom.controls.loadingSpinner.hide();      
     }
 
     /**
@@ -257,10 +236,8 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async saveTranscription() {
-        this.transcriptionLoadingBar.show();
         const username = document.querySelector("kuberam-login-element").username;
         var data = solirom.controls.transcriptionEditor.exportData();
-        console.log(data);
 
         var result;
         try {
@@ -278,14 +255,12 @@ export default class DataEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            this.transcriptionLoadingBar.hide();
             alert("Transcrierea nu poate fi salvată.");
             return;
         }    
         solirom.data.transcription.sha = result.sha;
 
         solirom.controls.transcriptionEditor.setAttribute("status", "edit");
-        this.transcriptionLoadingBar.hide();        
     }    
 
     /**
@@ -294,13 +269,13 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async editEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
 
         const entry = await solirom.actions._getEntry();
 
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
-        this.entryLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     /**
@@ -309,7 +284,7 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async saveEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
         const username = document.querySelector("kuberam-login-element").username;
         const data = this.entryEditor.exportData();
 
@@ -329,7 +304,6 @@ export default class DataEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi salvată.");
             return;
         }
@@ -337,7 +311,7 @@ export default class DataEditorComponent extends HTMLElement {
         solirom.data.entry.sha = result.sha;
     
         this.entryEditor.setAttribute("status", "edit");
-        this.entryLoadingBar.hide();        
+        window.solirom.controls.loadingSpinner.hide();       
     }  
 
     /**
@@ -346,14 +320,13 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async addEntry() {
-        this.entryLoadingBar.show();  
+        window.solirom.controls.loadingSpinner.show();  
         var entryId = "";
 
         try {
             entryId = await fetch("https://uuid.solirom.ro/cflr-" + solirom.data.work.id).then(response => response.text());
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Nu se poate genera un identificator pentru intrare.");
             return;
         }  
@@ -383,12 +356,11 @@ export default class DataEditorComponent extends HTMLElement {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi creată.");
             return;
         }
 
-        this.entryLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     /**
@@ -397,7 +369,7 @@ export default class DataEditorComponent extends HTMLElement {
      * @return void
      */    
     async deleteEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
 
         const username = document.querySelector("kuberam-login-element").username;
 
@@ -418,7 +390,6 @@ export default class DataEditorComponent extends HTMLElement {
             });
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi ștearsă.");
             return;
         }        
@@ -426,10 +397,7 @@ export default class DataEditorComponent extends HTMLElement {
         //reset the entry editor
         this.entryEditor.reset();
 
-        this.entryLoadingBar.hide();
-
         // remove the transcription reference
-        this.transcriptionLoadingBar.show();
         this.selectedIncludeElement.remove();
 
         // save the transcription
@@ -437,12 +405,11 @@ export default class DataEditorComponent extends HTMLElement {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
-            this.transcriptionLoadingBar.hide();
             alert("Transcrierea nu poate fi salvată.");
             return;
         }        
 
-        this.transcriptionLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     toggleEntryReference(currentEntryReference) {
@@ -465,9 +432,10 @@ export default class DataEditorComponent extends HTMLElement {
  */
 solirom.actions.duplicateEntry = async () => {
     const currentTranscriptionPath = solirom.data.transcription.path;
-    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousSibling;
+    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
 
     if (previousTranscriptionReference !== null) {
+        window.solirom.controls.loadingSpinner.show();
         const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionReference.getAttribute("corresp"));
         const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
         const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
@@ -475,16 +443,8 @@ solirom.actions.duplicateEntry = async () => {
         solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
 
         // save the transcription
-        try {
-            console.log(solirom.data.transcription.path);
-            console.log(solirom.data.transcription.sha);
-            //await document.querySelector("data-editor").saveTranscription();
-        } catch (error) {
-            console.error(error);
-            //this.transcriptionLoadingBar.hide();
-            alert("Transcrierea nu poate fi salvată.");
-            return;
-        }         
+        await document.querySelector("data-editor").saveTranscription();
+        window.solirom.controls.loadingSpinner.hide();                 
     }
 };
 
@@ -496,7 +456,6 @@ solirom.actions.duplicateEntry = async () => {
 solirom.actions._getEntry = async () =>  {
     const path = solirom.data.entry.path;
     var result;
-    console.log(path);
 
     try {
         result = await solirom.data.repos.cflr.client({
@@ -509,7 +468,6 @@ solirom.actions._getEntry = async () =>  {
         result = result.data;		
     } catch (error) {
         console.error(error);
-        //this.entryLoadingBar.hide();
         alert("Eroare la încărcarea intrării.");
         return;
     }
