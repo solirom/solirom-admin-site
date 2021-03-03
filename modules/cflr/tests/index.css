@@ -112,7 +112,7 @@ label[for = 'section-selector-container'] {
     width: 95%;
 }
 
-#transcription-editor-container {
+#data-editor-container {
     width: 685px;
     height: 950px;
     display: none;

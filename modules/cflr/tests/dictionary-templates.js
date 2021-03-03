@@ -31,7 +31,7 @@ solirom.data.entry = {
 	"path": ""
 };
 
-export default class TranscriptionEditorComponent extends HTMLElement {
+export default class DataEditorComponent extends HTMLElement {
     constructor() {
         super();
         
@@ -142,7 +142,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 transcriptionDetail.dispatchEvent(new Event("input"));
 
                 await this.saveEntry();
-                await document.querySelector("transcription-editor").saveTranscription();
+                await document.querySelector("data-editor").saveTranscription();
             }
         }, false);
 
@@ -231,7 +231,21 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             }
         );
         Sortable.create(abElement, {
-            animation: 350
+            animation: 350,
+            onEnd: async () => {
+                const dataEditor = document.querySelector("data-editor");
+                dataEditor.transcriptionLoadingBar.show();
+                                
+                try {
+                    await dataEditor.saveTranscription();
+                } catch (error) {
+                    console.error(error);
+                    dataEditor.transcriptionLoadingBar.hide();
+                    alert("Transcrierea nu poate fi salvată.");
+                    return;
+                }                
+                dataEditor.transcriptionLoadingBar.hide();
+            }
         });  
         this.transcriptionLoadingBar.hide();      
     }
@@ -365,7 +379,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newEntryPath], "/");
 
             await this.saveEntry();
-            await document.querySelector("transcription-editor").saveTranscription();
+            await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
             this.entryLoadingBar.hide();
@@ -419,7 +433,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
 
         // save the transcription
         try {
-            await document.querySelector("transcription-editor").saveTranscription();
+            await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
             this.transcriptionLoadingBar.hide();
@@ -463,7 +477,7 @@ solirom.actions.duplicateEntry = async () => {
         try {
             console.log(solirom.data.transcription.path);
             console.log(solirom.data.transcription.sha);
-            //await document.querySelector("transcription-editor").saveTranscription();
+            //await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
             //this.transcriptionLoadingBar.hide();
@@ -611,4 +625,4 @@ customElements.define("t-include", class extends teian.formControlClass {
     }
 });
 
-window.customElements.define("transcription-editor", TranscriptionEditorComponent);
+window.customElements.define("data-editor", DataEditorComponent);

@@ -125,7 +125,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	volumeSelector.style.display = "none";
 	volumeSelector.innerHTML = "";
 	if (Object.keys(solirom.data.search.result).length !== 0) {
-		const dataEditor = document.querySelector("transcription-editor");
+		const dataEditor = document.querySelector("data-editor");
 		dataEditor.transcriptionEditor.reset();
 		dataEditor.entryEditor.reset();
 		solirom.actions.displayMetadataEditor();	
@@ -683,12 +683,12 @@ solirom.actions.composePath = (steps, separator) => {
 
 solirom.actions.displayMetadataEditor = () => {
     document.querySelector("#metadata-editor-container").style.display = "inline-block";
-    document.querySelector("#transcription-editor-container").style.display = "none";	
+    document.querySelector("#data-editor-container").style.display = "none";	
 };
 
 solirom.actions.displayDataEditor = () => {
     document.querySelector("#metadata-editor-container").style.display = "none";
-    document.querySelector("#transcription-editor-container").style.display = "inline-block";	
+    document.querySelector("#data-editor-container").style.display = "inline-block";	
 };
 
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {

@@ -153,7 +153,7 @@ teian.actions.displayScan = (element) => {
 solirom.actions.editTranscription = async (element) => {
     solirom.actions.displayDataEditor();
     const hostElement = element.getRootNode().host;
-    document.querySelector("transcription-editor").editTranscription(hostElement);
+    document.querySelector("data-editor").editTranscription(hostElement);
 };
 
 teian.actions.selectPageBreak = (element) => {
