@@ -2,7 +2,7 @@ import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
 import * as soliromUtils from "/modules/utils/solirom-utils.js";
 //import MiniEditorComponent from '/modules/solirom-mini-editor/solirom-mini-editor.js';
-//import LanguageSelectorComponent from '/modules/solirom-language-selector/solirom-language-selector.js';
+import LanguageSelectorComponent from '/modules/solirom-language-selector/solirom-language-selector.js';
 
 solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation"/>`
 ;
@@ -11,6 +11,7 @@ solirom.data.templates.entryFile =
         <entry>
             <form type="headword">
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+                <gramGrp/>
             </form>
         </entry>
         <note>
@@ -480,6 +481,7 @@ solirom.actions.duplicateEntry = async () => {
 solirom.actions._getEntry = async () =>  {
     const path = solirom.data.entry.path;
     var result;
+    console.log(path);
 
     try {
         result = await solirom.data.repos.cflr.client({
@@ -492,7 +494,7 @@ solirom.actions._getEntry = async () =>  {
         result = result.data;		
     } catch (error) {
         console.error(error);
-        this.entryLoadingBar.hide();
+        //this.entryLoadingBar.hide();
         alert("Eroare la încărcarea intrării.");
         return;
     }
@@ -510,7 +512,7 @@ solirom.actions._getEntry = async () =>  {
 };
 
 teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
-teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
+teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot name="t-gramgrp"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
@@ -522,6 +524,11 @@ teian.frameworkDefinition["t-orth-template"] =
         </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
         <div id="mini-editor" contenteditable="true" data-ref="#text"></div>
+    `
+;
+teian.frameworkDefinition["t-gramgrp-template"] = 
+    `
+        <input id="page-number" data-ref="#text" />
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
@@ -583,6 +590,11 @@ customElements.define("t-form", class extends teian.divClass {
     }
 });
 customElements.define("t-orth", class extends teian.formControlClass {
+    constructor() {
+        super();
+    }
+});
+customElements.define("t-gramgrp", class extends teian.formControlClass {
     constructor() {
         super();
     }

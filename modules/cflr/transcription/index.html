@@ -77,15 +77,15 @@
                 </div>
             </div>
             <div id="editor-container"> 
-                <div id="numbering-editor">
-                    <teian-editor style="width: 98%; height: 950px;">
+                <div id="metadata-editor-container">
+                    <teian-editor id="metadata-editor" style="width: 98%; height: 950px;">
                         <button slot="toolbar" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
                         <label for="volume-selector" slot="toolbar">Volum</label>
                         <select id="volume-selector" slot="toolbar"></select>
                         <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
                     </teian-editor>                
                 </div>
-                <div id="transcription-editor">
+                <div id="transcription-editor-container" class="hidden">
                     <transcription-editor />
                 </div>
             </div>            
