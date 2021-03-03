@@ -489,6 +489,10 @@ teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
+            :host(*) {
+                width: 350px;
+                display: inline-block;
+            }
             #mini-editor {
                 background-color: white;
                 padding: 3px;
@@ -501,7 +505,13 @@ teian.frameworkDefinition["t-orth-template"] =
 ;
 teian.frameworkDefinition["t-gramgrp-template"] = 
     `
-        <input id="page-number" data-ref="#text" />
+        <style>
+            #gramGrp {
+                width: 350px;
+                display: inline-block;
+            }
+        </style>
+        <input id="gramGrp" data-ref="#text" />
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
