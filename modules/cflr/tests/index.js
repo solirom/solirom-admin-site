@@ -63,12 +63,12 @@ document.addEventListener("fileSave", event => {
     document.querySelector("#save-button").disabled = true;
 }, false);
 
-document.querySelector("#numbering-editor").addEventListener("teian-file-edited", event => {
+document.querySelector("#metadata-editor-container").addEventListener("teian-file-edited", event => {
     document.querySelector("#save-button").disabled = false;
 }, false);
 
 document.addEventListener("kuberam.loginElement.events.logout", event => {
-    teian.editor.reset();
+    solirom.controls.metadataEditor.reset();
 });
 
 document.addEventListener("teian-file-opened", event => {
@@ -123,7 +123,13 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	document.querySelector("label[for = 'volume-selector']").style.display = "none";
 	const volumeSelector = document.querySelector("#volume-selector");
 	volumeSelector.style.display = "none";
-	volumeSelector.innerHTML = "";	
+	volumeSelector.innerHTML = "";
+	if (Object.keys(solirom.data.search.result).length !== 0) {
+		const dataEditor = document.querySelector("transcription-editor");
+		dataEditor.transcriptionEditor.reset();
+		dataEditor.entryEditor.reset();
+		solirom.actions.displayMetadataEditor();	
+	}
     
 	const selectedItemValue = event.text.value;
 	const selectedItemId = solirom.data.search.result[selectedItemValue];
@@ -164,7 +170,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
 	document.querySelector("#scan").src = "";
-	teian.editor.reset();
+	solirom.controls.metadataEditor.reset();
 	document.querySelector("#add-scan").disabled = true;
 	document.querySelector("#replace-scan").disabled = true;
 	document.querySelector("#delete-scan").disabled = true;			
@@ -174,16 +180,16 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	
 	switch (workType) {
 		case "uni-volume":
-		teian.editor.setAttribute("status", "edit");
-		teian.editor.setAttribute("src", "data:application/xml;" + contents);
+		solirom.controls.metadataEditor.setAttribute("status", "edit");
+		solirom.controls.metadataEditor.setAttribute("src", "data:application/xml;" + contents);
 		document.querySelector("#add-scan").disabled = false;
 		
 		document.querySelector("#text-tools").style.display = "inline";
-		[...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
-		teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline";
+		const metadataEditorShadowRoot = solirom.controls.metadataEditor.shadowRoot;
+		[...metadataEditorShadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
+		metadataEditorShadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline";
 		
-		[...document.querySelector("#numbering-editor > teian-editor").shadowRoot.
-		querySelectorAll("*[data-name = 'front'], *[data-name = 'back']")].forEach((section => {
+		[...metadataEditorShadowRoot.querySelectorAll("*[data-name = 'front'], *[data-name = 'back']")].forEach((section => {
 			section.classList.add("list-group");
 			[...section.querySelectorAll("*[data-name = 'pb']")].forEach((pb) => {
 				pb.classList.add("list-group-item");
@@ -329,8 +335,9 @@ document.addEventListener("change", async (event) => {
         
         solirom.data.work.textSection = textSection;
         
-        [...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = 'none');
-        teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = 'inline';
+		const metadataEditorShadowRoot = solirom.controls.metadataEditor.shadowRoot;
+        [...metadataEditorShadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = 'none');
+        metadataEditorShadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = 'inline';
 	}	
 	
 	if (target.matches("#volume-selector")) {
@@ -362,11 +369,13 @@ document.addEventListener("change", async (event) => {
 		solirom.data.repos.cflr.sha.index = result.sha;
 		const contents = solirom.actions.b64DecodeUnicode(result.content);
 
-		teian.editor.setAttribute("status", "edit");
-		teian.editor.setAttribute("src", "data:application/xml;" + contents);
+		solirom.controls.metadataEditor.setAttribute("status", "edit");
+		solirom.controls.metadataEditor.setAttribute("src", "data:application/xml;" + contents);
 		document.querySelector("#text-tools").style.display = "inline";
-		[...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
-		teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline"; 
+
+		const metadataEditorShadowRoot = solirom.controls.metadataEditor.shadowRoot;
+		[...metadataEditorShadowRoot.querySelectorAll("#content *[data-name = 'text'] > *")].forEach((section) => section.style.display = "none");
+		metadataEditorShadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']").style.display = "inline"; 
 
 		document.querySelector("#scan").src = "";
 		document.querySelector("#add-scan").disabled = false;
@@ -403,13 +412,13 @@ solirom.actions.saveMetadata = async () => {
 
 	solirom.data.repos.cflr.sha.index = result.sha;
 
-	teian.editor.setAttribute("status", "edit");
+	solirom.controls.metadataEditor.setAttribute("status", "edit");
 	document.querySelector("#editor-loading-bar").style.display = "none";	
 	setTimeout(() => document.querySelector("#save-button").disabled = true, 100);	
 };
 
 solirom.actions.getLatestScanName = () => {
-	const scanNames = [...teian.editor.shadowRoot.querySelectorAll("#content *[data-name = 'pb']")].map((element) => element.getAttribute("facs")).sort();
+	const scanNames = [...solirom.controls.metadataEditor.shadowRoot.querySelectorAll("#content *[data-name = 'pb']")].map((element) => element.getAttribute("facs")).sort();
 	
 	if (scanNames.length === 0) {
 		return "f0000.png"
@@ -496,7 +505,7 @@ solirom.actions.saveScan = async (file) => {
 	var newTranscriptionName = newScanName.replace("f", "t");
 	newTranscriptionName = newTranscriptionName.replace("png", "xml");
 	const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
-	const textSection = teian.editor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
+	const textSection = solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
 	textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
 	
 	const username = document.querySelector("kuberam-login-element").username;
@@ -532,7 +541,7 @@ solirom.actions.deleteScan = async () => {
 		var scanName = solirom.data.scan.name;
 		const username = document.querySelector("kuberam-login-element").username;
 
-		teian.editor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();
+		solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();
 		var transcriptionName = scanName.replace("f", "t");
 		transcriptionName = transcriptionName.replace("png", "xml");
 
@@ -636,12 +645,13 @@ solirom.actions.deleteTranscription = async () => {
 	}	
 };
 
-solirom.actions._getTranscription = async () => {
+solirom.actions._getTranscription = async (path) => {
+	path = path || solirom.data.transcription.path;
 	var result;
 	try {
 		result = await solirom.data.repos.cflr.client({
 			method: "GET",
-			path: solirom.data.transcription.path,
+			path: path,
 			headers: {
 				'If-None-Match': ''
 			  }			
@@ -653,12 +663,32 @@ solirom.actions._getTranscription = async () => {
 		return;
 	}
 
-	solirom.data.transcription.sha = result.sha;
-	solirom.data.transcription.contents = solirom.actions.b64DecodeUnicode(result.content);
+	const sha = result.sha;
+    const contents = solirom.actions.b64DecodeUnicode(result.content);
+	if (path !== "") {
+		solirom.data.transcription.sha = sha;
+		solirom.data.transcription.contents = contents;	
+	}
+
+    return {
+        "path": path,
+        "sha": sha,
+        "contents": contents
+    };	
 };
 
 solirom.actions.composePath = (steps, separator) => {
 	return steps.filter(Boolean).join(separator);
+};
+
+solirom.actions.displayMetadataEditor = () => {
+    document.querySelector("#metadata-editor-container").style.display = "inline-block";
+    document.querySelector("#transcription-editor-container").style.display = "none";	
+};
+
+solirom.actions.displayDataEditor = () => {
+    document.querySelector("#metadata-editor-container").style.display = "none";
+    document.querySelector("#transcription-editor-container").style.display = "inline-block";	
 };
 
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {
@@ -669,3 +699,4 @@ solirom.controls.search = new Awesomplete(document.getElementById("search-string
 		return false;
 	}
 });
+solirom.controls.metadataEditor = document.querySelector("#metadata-editor");

@@ -108,11 +108,11 @@ label[for = 'section-selector-container'] {
     background-color: #38158f;
 }
 
-#numbering-editor {
+#metadata-editor-container {
     width: 95%;
 }
 
-#transcription-editor {
+#transcription-editor-container {
     width: 685px;
     height: 950px;
     display: none;

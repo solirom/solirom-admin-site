@@ -105,7 +105,7 @@ teian.frameworkDefinition = {
             <div id="pb-container">
                 <span class="fa-button drag-handler">&#xf0b2;</span>
                 <button class="fa-button" onclick="teian.actions.displayScan(this);" title="Afișare scan">&#xf15b;</button>
-                <button class="fa-button" onclick="teian.actions.editTranscription(this);" title="Editare transcriere">&#xf14b;</button>
+                <button class="fa-button" onclick="solirom.actions.editTranscription(this);" title="Editare transcriere">&#xf14b;</button>
                 <input id="page-number" data-ref="@n" onfocus="teian.actions.selectPageBreak(this);" />            		
             </div>
         `
@@ -150,16 +150,15 @@ teian.actions.displayScan = (element) => {
     teian.actions.selectPageBreak(element);
 };
 
-teian.actions.editTranscription = async (element) => {
-    document.querySelector("#numbering-editor").style.display = "none";
-    document.querySelector("#transcription-editor").style.display = "inline-block";
+solirom.actions.editTranscription = async (element) => {
+    solirom.actions.displayDataEditor();
     const hostElement = element.getRootNode().host;
     document.querySelector("transcription-editor").editTranscription(hostElement);
 };
 
 teian.actions.selectPageBreak = (element) => {
     const hostElement = element.hostElement;
-    var content = teian.editor.shadowRoot.querySelector("#content");
+    var content = solirom.controls.metadataEditor.shadowRoot.querySelector("#content");
     content.querySelectorAll(":scope *[data-name = 'pb']").forEach((pbElement) => pbElement.classList.remove("selected"));
     hostElement.classList.add("selected");
 };
