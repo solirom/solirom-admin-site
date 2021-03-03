@@ -233,9 +233,10 @@ export default class DataEditorComponent extends HTMLElement {
         Sortable.create(abElement, {
             animation: 350,
             onEnd: async () => {
+                solirom.controls.loadingSpinner.show();
                 const dataEditor = document.querySelector("data-editor");
-                dataEditor.transcriptionLoadingBar.show();
-                                
+                console.log(dataEditor.transcriptionEditor);
+
                 try {
                     await dataEditor.saveTranscription();
                 } catch (error) {
@@ -244,10 +245,10 @@ export default class DataEditorComponent extends HTMLElement {
                     alert("Transcrierea nu poate fi salvată.");
                     return;
                 }                
-                dataEditor.transcriptionLoadingBar.hide();
+                solirom.controls.loadingSpinner.hide();
             }
         });  
-        this.transcriptionLoadingBar.hide();      
+        solirom.controls.spinner.hide();      
     }
 
     /**

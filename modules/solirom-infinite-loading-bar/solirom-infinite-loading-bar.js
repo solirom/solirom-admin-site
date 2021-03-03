@@ -14,7 +14,7 @@ export default class SoliromInfiniteLoadingBar extends HTMLElement {
 					.meter > span {
 						display: block;
 						height: 100%;
-					          border-radius: 20px;
+					    border-radius: 20px;
 						background-color: rgb(43,194,83);
 						background-image: -webkit-gradient(
 						  linear,
