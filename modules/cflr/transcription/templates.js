@@ -29,43 +29,48 @@ teian.frameworkDefinition = {
     `,
     "t-front-template": `
             <style>
-                #body {
+                #content {
 					display: grid;
              	    grid-template-columns: repeat(3, 1fr);
                 }
               	${soliromUtils.awesomeButtonStyle}                 
             </style>
             	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
-            <div id="body">
+            <div id="content">
             	<slot name="t-pb"></slot>
 			</div>
     `,    
     "t-body-template": `
-            <style>
-                #body {
-					display: grid;
-             	    grid-template-columns: repeat(3, 1fr);
-                }
-              	${soliromUtils.awesomeButtonStyle}                 
-            </style>
-            	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
-            <div id="body">
-                <slot name="t-pb"></slot>
-                <slot name="t-entry"></slot>
-			</div>
+        <style>
+            :host(*) #content {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);                    
+            }
+            :host(*[*|id]) #content {
+                display: grid;
+                grid-template-columns: repeat(1, 1fr);                    
+            }                
+            ${soliromUtils.awesomeButtonStyle}                 
+        </style>
+        <button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
+        <div id="content">
+            <slot name="t-pb"></slot>
+            <slot name="t-entry"></slot>
+            <slot name="t-entryfree"></slot>
+        </div>
     `,
     "t-back-template": `
-            <style>
-                #body {
-					display: grid;
-             	    grid-template-columns: repeat(3, 1fr);
-                }
-              	${soliromUtils.awesomeButtonStyle}                 
-            </style>
-            <button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
-            <div id="body">
-            		<slot name="t-pb"></slot>
-			</div>
+        <style>
+            #content {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+            ${soliromUtils.awesomeButtonStyle}                 
+        </style>
+        <button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
+        <div id="content">
+                <slot name="t-pb"></slot>
+        </div>
     `,    
     "t-pb-template": `
             <style>
