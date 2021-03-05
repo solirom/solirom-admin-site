@@ -193,7 +193,7 @@ export default class DataEditorComponent extends HTMLElement {
             
             if (target.matches("#language-selector")) {
                 const orthShadowRoot = target.getRootNode();
-                const orthElement = orthShadowRoot.querySelector("#mini-editor");
+                const orthElement = orthShadowRoot.querySelector("#orth-mini-editor");
                 orthElement.focus();
                 document.execCommand('insertHTML', false, event.detail);
             }
@@ -201,6 +201,31 @@ export default class DataEditorComponent extends HTMLElement {
         
         this.entryEditor.addEventListener("teian-file-edited", event => {
             shadowRoot.querySelector("#save-entry-button").disabled = false;
+        }, false);
+
+        shadowRoot.addEventListener("input", (event) => {
+            const target = event.composedPath()[0];
+            
+            if (target.matches("#orth-mini-editor, #gramGrp-input")) {
+                const formElement = target.getRootNode().host.closest("*[data-name = 'form']");
+                const formType = formElement.getAttribute("type");
+
+                if (formType === "headword") {
+                    const lemmaFormElement = formElement.closest("*[data-name = 'body']").querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'form']");
+                    const lemmaOrthElement = lemmaFormElement.querySelector("[data-name = 'orth']").shadowRoot.querySelector("#orth-mini-editor");
+                    const lemmaGramGrpElement = lemmaFormElement.querySelector("[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input");
+
+                    const orthValue = formElement.querySelector("[data-name = 'orth']").dataset.value;
+                    const gramGrpValue = formElement.querySelector("[data-name = 'gramGrp']").dataset.value;
+                    
+                    lemmaOrthElement.textContent = orthValue;
+                    lemmaOrthElement.dispatchEvent(new Event("input"));
+
+                    lemmaGramGrpElement.value = gramGrpValue;
+                    lemmaGramGrpElement.dispatchEvent(new Event("input"));
+                }
+                 
+            }           
         }, false);        
     }    
 
@@ -295,6 +320,9 @@ export default class DataEditorComponent extends HTMLElement {
 
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
+
+        this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input").disabled = true;
+
         window.solirom.controls.loadingSpinner.hide();
     }
 
@@ -525,14 +553,14 @@ teian.frameworkDefinition["t-orth-template"] =
                 width: 350px;
                 display: inline-block;
             }
-            #mini-editor {
+            #orth-mini-editor {
                 background-color: white;
                 padding: 3px;
                 border: 1px solid black;
             }
         </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
-        <div id="mini-editor" contenteditable="true" data-ref="#text"></div>
+        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
     `
 ;
 teian.frameworkDefinition["t-gramgrp-template"] = 
@@ -544,7 +572,7 @@ teian.frameworkDefinition["t-gramgrp-template"] =
                 border: 1px solid black;
             }
         </style>
-        <input id="gramGrp" data-ref="#text" />
+        <input id="gramGrp-input" data-ref="#text" />
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
