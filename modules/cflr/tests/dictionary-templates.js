@@ -18,13 +18,17 @@ solirom.data.templates.entryFile =
             <editor role="transcriber">${props => props.author}</editor>
             <editor role="reviewer"/>
         </note>
-        <note>
+        <entryFree type="lemma">
+            <form>
+                <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+                <gramGrp/>
+            </form>
             <idno type="lexicon"/>
-        </note>        
+        </entryFree>                
     </body>`
 ;
 solirom.data.templates.entryReference =
-    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" class="list-group-item" draggable="true"></t-include>`
+    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="unknown" class="list-group-item" draggable="true"></t-include>`
 ;        
 solirom.data.entry = {
 	"sha": "",
@@ -69,8 +73,8 @@ export default class DataEditorComponent extends HTMLElement {
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
-                            <label for="transcription-status-selector">Stare pagină</label>
-                            <select id="page-status-selector">
+                            <label for="transcription-status-selector">Stare transcriere</label>
+                            <select id="transcription-status-selector">
                                 <option value="unknown"></option>
                                 <option value="validated">validată</option>
                                 <option value="reviewed">revizuită</option>
@@ -82,6 +86,12 @@ export default class DataEditorComponent extends HTMLElement {
                         <div id="detail-content">
                             <teian-editor id="entry-editor" style="background-color: #ededeb;width: 90%; height: 900px;">
                                 <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
+                                <label slot="toolbar" for="entry-status-selector">Stare intrare</label>
+                                <select slot="toolbar" id="entry-status-selector" disabled="true">
+                                    <option value="unknown"></option>
+                                    <option value="validated">validată</option>
+                                    <option value="reviewed">revizuită</option>
+                                </select>                                
                             </teian-editor>                    
                         </div>
                     </div> 
@@ -92,9 +102,11 @@ export default class DataEditorComponent extends HTMLElement {
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
+        this.entryStatusSelector = shadowRoot.querySelector("#entry-status-selector");
+        this.selectedIncludeElement = null;
 
-        this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
-        this.pbElement = null;
+        this.transcriptionStatusSelector = shadowRoot.querySelector("#transcription-status-selector");
+        this.selectedPbElement = null;
 
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
         this.saveEntryButton = shadowRoot.querySelector("#save-entry-button");
@@ -129,7 +141,7 @@ export default class DataEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
@@ -146,16 +158,24 @@ export default class DataEditorComponent extends HTMLElement {
             const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
+                this.entryStatusSelector.disabled = false;
                 this.editEntry(); 
             }           
         }, false);        
         
-        shadowRoot.addEventListener("change", (event) => {
-            const target = event.target;
+        shadowRoot.addEventListener("change", async (event) => {
+            const target = event.composedPath()[0];
             
-            if (target.matches("#page-status-selector")) {
-                this.pbElement.setAttribute("cert", target.value);
-                solirom.actions.saveMetadata();
+            if (target.matches("#transcription-status-selector")) {
+                this.selectedPbElement.setAttribute("cert", target.value);
+                await solirom.actions.saveMetadata();
+            } 
+            
+            if (target.matches("#entry-status-selector")) {
+                window.solirom.controls.loadingSpinner.show();
+                this.selectedIncludeElement.setAttribute("cert", target.value);
+                await this.saveTranscription();
+                window.solirom.controls.loadingSpinner.hide();
             }            
         }, false); 
         
@@ -195,14 +215,12 @@ export default class DataEditorComponent extends HTMLElement {
      * @public
      * @return void
      */    
-    async editTranscription(pbElement) {
+    async editTranscription(selectedPbElement) {
         window.solirom.controls.loadingSpinner.show();
-        this.reset();
-        this.pbElement = pbElement;
-        const pageStatus = pbElement.getAttribute("cert");
-        this.pageStatusSelector.value = pageStatus;
+        this.selectedPbElement = selectedPbElement;
+        this.transcriptionStatusSelector.value = selectedPbElement.getAttribute("cert");
 
-        var transcriptionPath = pbElement.getAttribute("corresp");
+        var transcriptionPath = selectedPbElement.getAttribute("corresp");
         solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, transcriptionPath], "/");
 
         await solirom.actions._globalGetTranscription();        
@@ -270,6 +288,8 @@ export default class DataEditorComponent extends HTMLElement {
      */    
     async editEntry() {
         window.solirom.controls.loadingSpinner.show();
+
+        this.entryStatusSelector.value = this.selectedIncludeElement.getAttribute("cert");        
 
         const entry = await solirom.actions._getEntry();
 
@@ -555,6 +575,12 @@ teian.frameworkDefinition["t-include-template"] =
                 box-sizing: border-box;
                 padding: 2px;
             }  
+            :host(*[cert='validated']) .transcription-reference {
+                border-left: 7px solid #f58d42;
+            } 
+            :host(*[cert='reviewed']) .transcription-reference {
+                border-left: 7px solid #5c9106;
+            }            
         </style>
         <div class="transcription-reference">
             <div class="drag-handler"></div><div class="transcription-detail" data-ref="@label"></div>

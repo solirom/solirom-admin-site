@@ -41,7 +41,7 @@ solirom.data.templates = {
 		<option xmlns="http://www.w3.org/1999/xhtml" value="${props => props.value}">${props => props.label}</option>
 	`,
 	"pb": solirom.actions.html`
-		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="0" corresp="${props => props.transcriptionPath}"></t-pb>
+		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="unknown" corresp="${props => props.transcriptionPath}"></t-pb>
 	`,
 	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
 };
@@ -209,7 +209,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 				const volumeNumber = item.getAttribute("href").match(/\d+/g)[0];
 
 				return solirom.data.templates.volumeSelectorOption({"label": volumeNumber, "value": volumeNumber});
-		}).join("");
+		}).filter(Boolean).join("");
 		volumeNumbers = solirom.data.templates.volumeSelectorOption({"label": "", "value": ""}) + volumeNumbers;
 
 		volumeSelector.style.display = "inline";
