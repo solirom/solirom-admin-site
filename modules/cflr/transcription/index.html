@@ -6,7 +6,6 @@
 		
         <script type="module" src="/modules/teian-editor/teian-editor.js" defer="true"></script> 
         <script type="module" src="/modules/kuberam-login-element/kuberam-login-element.js" defer="true"></script>        
-        <script type="module" src="/modules/solirom-infinite-loading-bar/solirom-infinite-loading-bar.js" defer="true"></script>
         <script src="/modules/dragscroll/dragscroll.js"></script>
 
         <!-- Awesomplete -->
@@ -19,6 +18,7 @@
         <script type="module" src="index.js" defer="true"></script>        
         <script type="module" src="templates.js" defer="true"></script>
         <script type="module" src="dictionary-templates.js" defer="true"></script>
+        <script type="module" src="/modules/solirom-loading-spinner/solirom-loading-spinner.js" defer="true"></script>        
         <link rel="stylesheet" href="index.css"/>  
     </head>
     <body>
@@ -68,7 +68,6 @@
                     <button id="delete-scan" title="Ștergere scan" disabled="true">&#xf2ed;</button>
                     <button id="zoom-in-button" title="Mărire scan">&#xf00e;</button>
                     <button id="zoom-out-button" title="Micșorare scan">&#xf010;</button>                    
-                    <solirom-infinite-loading-bar id="image-viewer-loading-bar" style="display:none"></solirom-infinite-loading-bar>
                     <input type="file" id="add-scan-fileupload" multiple="true" accept="image/png" style="display:none"/>
                     <input type="file" id="replace-scan-fileupload" accept="image/png" style="display:none"/>
                 </div> 
@@ -82,13 +81,13 @@
                         <button slot="toolbar" id="save-button" title="Salvare document" disabled="true">&#xf0c7;</button>
                         <label for="volume-selector" slot="toolbar">Volum</label>
                         <select id="volume-selector" slot="toolbar"></select>
-                        <solirom-infinite-loading-bar id="editor-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
                     </teian-editor>                
                 </div>
-                <div id="transcription-editor-container" class="hidden">
-                    <transcription-editor />
+                <div id="data-editor-container" class="hidden">
+                    <data-editor />
                 </div>
             </div>            
         </div>
+        <solirom-loading-spinner/>
     </body>
 </html>

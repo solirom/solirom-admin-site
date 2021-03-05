@@ -41,7 +41,7 @@ solirom.data.templates = {
 		<option xmlns="http://www.w3.org/1999/xhtml" value="${props => props.value}">${props => props.label}</option>
 	`,
 	"pb": solirom.actions.html`
-		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="0" corresp="${props => props.transcriptionPath}"></t-pb>
+		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="unknown" corresp="${props => props.transcriptionPath}"></t-pb>
 	`,
 	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
 };
@@ -125,7 +125,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	volumeSelector.style.display = "none";
 	volumeSelector.innerHTML = "";
 	if (Object.keys(solirom.data.search.result).length !== 0) {
-		const dataEditor = document.querySelector("transcription-editor");
+		const dataEditor = document.querySelector("data-editor");
 		dataEditor.transcriptionEditor.reset();
 		dataEditor.entryEditor.reset();
 		solirom.actions.displayMetadataEditor();	
@@ -163,6 +163,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	} catch (error) {
 		console.error(error);
 		alert("Lucrarea nu poate fi încărcată.");
+
 		return;
 	}
 
@@ -208,7 +209,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 				const volumeNumber = item.getAttribute("href").match(/\d+/g)[0];
 
 				return solirom.data.templates.volumeSelectorOption({"label": volumeNumber, "value": volumeNumber});
-		}).join("");
+		}).filter(Boolean).join("");
 		volumeNumbers = solirom.data.templates.volumeSelectorOption({"label": "", "value": ""}) + volumeNumbers;
 
 		volumeSelector.style.display = "inline";
@@ -298,13 +299,13 @@ document.addEventListener("change", async (event) => {
     if (target.matches("#replace-scan-fileupload")) {
         solirom.data.messages.legalFileSize = "";
         
-    	document.querySelector("#image-viewer-loading-bar").show();
+    	solirom.controls.loadingSpinner.show();
         const file = target.files[0];
               
         const isLegalSize = solirom.actions.checkFileSize(file);
 
         if (!isLegalSize) {
-            document.querySelector("#image-viewer-loading-bar").hide();
+			console.error(error);
 			alert(solirom.data.messages.legalFileSize); 
 			           
             return;
@@ -322,10 +323,11 @@ document.addEventListener("change", async (event) => {
 			});
 	
 			solirom.actions.updateImageViewerURL(currentScanName);	
-			document.querySelector("#image-viewer-loading-bar").hide();	
+			solirom.controls.loadingSpinner.hide();	
 		} catch (error) {
 			console.error(error);
 			alert("Eroare la înlocuirea scanului.");
+
 			return;
 		}		
 	}
@@ -363,6 +365,7 @@ document.addEventListener("change", async (event) => {
 		} catch (error) {
 			console.error(error);
 			alert("Lucrarea nu poate fi încărcată.");
+
 			return;
 		}
 	
@@ -385,7 +388,7 @@ document.addEventListener("change", async (event) => {
 }, false);
 
 solirom.actions.saveMetadata = async () => {
-	document.querySelector("#editor-loading-bar").style.display = "inline";
+	solirom.controls.loadingSpinner.show();
 	const username = document.querySelector("kuberam-login-element").username;
 	const indexFilePath = solirom.actions.composePath([solirom.data.work.volumeNumber, "index.xml"], "/");
 	var data = teian.utils.unloadData();
@@ -407,13 +410,14 @@ solirom.actions.saveMetadata = async () => {
 	} catch (error) {
 		console.error(error);
 		alert("Lucrarea nu poate fi salvată.");
+
 		return;
 	}
 
 	solirom.data.repos.cflr.sha.index = result.sha;
 
 	solirom.controls.metadataEditor.setAttribute("status", "edit");
-	document.querySelector("#editor-loading-bar").style.display = "none";	
+	solirom.controls.loadingSpinner.hide();	
 	setTimeout(() => document.querySelector("#save-button").disabled = true, 100);	
 };
 
@@ -474,11 +478,11 @@ solirom.actions.checkFileSize = (file) => {
 };
 
 solirom.actions.saveScan = async (file) => {
-	document.querySelector("#image-viewer-loading-bar").show();	
+	solirom.controls.loadingSpinner.show();	
 	const isLegalSize = solirom.actions.checkFileSize(file);
 	
 	if (!isLegalSize) {
-		document.querySelector("#image-viewer-loading-bar").hide();
+		solirom.controls.loadingSpinner.hide();
 
 		return;    
 	}
@@ -495,13 +499,11 @@ solirom.actions.saveScan = async (file) => {
 		});
 	} catch (error) {
 		console.error(error);
-		document.querySelector("#image-viewer-loading-bar").hide();		
 		alert("Eroare la salvarea scanului.");
+
 		return;
 	}
-	document.querySelector("#image-viewer-loading-bar").hide();	
 
-	document.querySelector("#editor-loading-bar").show();	
 	var newTranscriptionName = newScanName.replace("f", "t");
 	newTranscriptionName = newTranscriptionName.replace("png", "xml");
 	const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
@@ -525,14 +527,13 @@ solirom.actions.saveScan = async (file) => {
 		result = result.data.content;
 	} catch (error) {
 		console.error(error);
-		document.querySelector("#editor-loading-bar").hide();		
 		alert("Eroare la salvarea transcrierii.");
 
 		return;
 	}
 	solirom.data.transcription.sha = result.sha;
 
-	document.querySelector("#editor-loading-bar").hide();		
+	solirom.controls.loadingSpinner.hide();		
 };
 
 solirom.actions.deleteScan = async () => {
@@ -548,26 +549,24 @@ solirom.actions.deleteScan = async () => {
 		solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
 		
 		try {
-			document.querySelector("#image-viewer-loading-bar").show();				
+			solirom.controls.loadingSpinner.show();				
 			await fetch(solirom.data.repos.lowResScan.basePath + scanName, {
 				method: "DELETE"
 			});	
 		} catch (error) {
 			console.error(error);
-			document.querySelector("#image-viewer-loading-bar").hide();
 			alert("Eroare la ștergerea scanului.");
+
 			return;
 		}
 		document.querySelector("#scan").src = "";		
-		document.querySelector("#image-viewer-loading-bar").hide();
 
-		document.querySelector("#editor-loading-bar").show();
 		try {
 			await solirom.actions.deleteTranscription();
 		} catch (error) {
 			console.error(error);
-			document.querySelector("#editor-loading-bar").hide();
 			alert("Eroare la ștergerea transcrierii.");
+
 			return;
 		}
 
@@ -575,11 +574,11 @@ solirom.actions.deleteScan = async () => {
 			await solirom.actions.saveMetadata();
 		} catch (error) {
 			console.error(error);
-			document.querySelector("#editor-loading-bar").hide();
 			alert("Eroare la salvarea metadatelor.");
+			
 			return;
 		}
-		document.querySelector("#editor-loading-bar").hide();		
+		solirom.controls.loadingSpinner.hide();		
 	}
 };
 
@@ -591,14 +590,8 @@ solirom.actions.deleteScan = async () => {
 solirom.actions.deleteTranscription = async () => {
 	const username = document.querySelector("kuberam-login-element").username;
 
-	try {
-		await solirom.actions._getTranscription();
-	} catch (error) {
-		console.error(error);
-		document.querySelector("#editor-loading-bar").hide();
-		alert("Eroare la încărcarea transcrierii.");
-		return;
-	}	
+	await solirom.actions._globalGetTranscription();
+	
 	const transcriptionDocument = (new DOMParser()).parseFromString(solirom.data.transcription.contents, "application/xml").documentElement;
 	const entryIncludeElements = transcriptionDocument.querySelectorAll("*|include");
 
@@ -615,8 +608,8 @@ solirom.actions.deleteTranscription = async () => {
 		});	
 	} catch (error) {
 		console.error(error);
-		document.querySelector("#editor-loading-bar").hide();
 		alert("Eroare la ștergerea transcrierii.");
+
 		return;
 	}	
 
@@ -638,15 +631,20 @@ solirom.actions.deleteTranscription = async () => {
 		}
 	} catch (error) {
 		console.error(error);
-		document.querySelector("#editor-loading-bar").hide();
 		alert("Eroare la ștergerea intrărilor asociate transcrierii.");
 
 		return;
 	}	
 };
 
+solirom.actions._globalGetTranscription = async () => {
+	const result = await solirom.actions._getTranscription(solirom.data.transcription.path);
+
+	solirom.data.transcription.sha = result.sha;
+	solirom.data.transcription.contents = result.contents;		
+};
+
 solirom.actions._getTranscription = async (path) => {
-	path = path || solirom.data.transcription.path;
 	var result;
 	try {
 		result = await solirom.data.repos.cflr.client({
@@ -663,17 +661,10 @@ solirom.actions._getTranscription = async (path) => {
 		return;
 	}
 
-	const sha = result.sha;
-    const contents = solirom.actions.b64DecodeUnicode(result.content);
-	if (path !== "") {
-		solirom.data.transcription.sha = sha;
-		solirom.data.transcription.contents = contents;	
-	}
-
     return {
         "path": path,
-        "sha": sha,
-        "contents": contents
+        "sha": result.sha,
+        "contents": solirom.actions.b64DecodeUnicode(result.content)
     };	
 };
 
@@ -683,12 +674,12 @@ solirom.actions.composePath = (steps, separator) => {
 
 solirom.actions.displayMetadataEditor = () => {
     document.querySelector("#metadata-editor-container").style.display = "inline-block";
-    document.querySelector("#transcription-editor-container").style.display = "none";	
+    document.querySelector("#data-editor-container").style.display = "none";	
 };
 
 solirom.actions.displayDataEditor = () => {
     document.querySelector("#metadata-editor-container").style.display = "none";
-    document.querySelector("#transcription-editor-container").style.display = "inline-block";	
+    document.querySelector("#data-editor-container").style.display = "inline-block";	
 };
 
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {

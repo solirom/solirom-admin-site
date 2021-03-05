@@ -505,6 +505,18 @@ solirom.actions._getEntry = async () =>  {
 };
 
 teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
+teian.frameworkDefinition["t-entryfree-template"] = 
+    `
+        <style>
+            label {
+                display: block;
+                margin-top: 10px;
+            }
+        </style>    
+        <label>Lemă</label>
+        <slot name="t-form"></slot>
+    `
+;
 teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot name="t-gramgrp"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
@@ -529,6 +541,7 @@ teian.frameworkDefinition["t-gramgrp-template"] =
             #gramGrp {
                 width: 350px;
                 display: inline-block;
+                border: 1px solid black;
             }
         </style>
         <input id="gramGrp" data-ref="#text" />
@@ -589,6 +602,11 @@ teian.frameworkDefinition["t-include-template"] =
 ;    
 //<solirom-mini-editor id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-mini-editor>
 customElements.define("t-entry", class extends teian.divClass {
+    constructor() {
+        super();
+    }
+});
+customElements.define("t-entryfree", class extends teian.divClass {
     constructor() {
         super();
     }

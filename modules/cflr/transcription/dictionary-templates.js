@@ -11,26 +11,31 @@ solirom.data.templates.entryFile =
         <entry>
             <form type="headword">
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+                <gramGrp/>
             </form>
         </entry>
         <note>
             <editor role="transcriber">${props => props.author}</editor>
             <editor role="reviewer"/>
         </note>
-        <note>
+        <entryFree type="lemma">
+            <form>
+                <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+                <gramGrp/>
+            </form>
             <idno type="lexicon"/>
-        </note>        
+        </entryFree>                
     </body>`
 ;
 solirom.data.templates.entryReference =
-    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" class="list-group-item" draggable="true"></t-include>`
+    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="unknown" class="list-group-item" draggable="true"></t-include>`
 ;        
 solirom.data.entry = {
 	"sha": "",
 	"path": ""
 };
 
-export default class TranscriptionEditorComponent extends HTMLElement {
+export default class DataEditorComponent extends HTMLElement {
     constructor() {
         super();
         
@@ -68,13 +73,12 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
-                            <label for="transcription-status-selector">Stare pagină</label>
-                            <select id="page-status-selector">
+                            <label for="transcription-status-selector">Stare transcriere</label>
+                            <select id="transcription-status-selector">
                                 <option value="unknown"></option>
                                 <option value="validated">validată</option>
                                 <option value="reviewed">revizuită</option>
                             </select> 
-                            <solirom-infinite-loading-bar id="transcription-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>                           
                         </div>
                         <teian-editor id="transcription-editor" style="width: 95%; height: 910px;"></teian-editor>                        
                     </div>
@@ -82,7 +86,12 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                         <div id="detail-content">
                             <teian-editor id="entry-editor" style="background-color: #ededeb;width: 90%; height: 900px;">
                                 <button slot="toolbar" id="save-entry-button" title="Salvare document" disabled="true">&#xf0c7;</button>
-                                <solirom-infinite-loading-bar id="entry-loading-bar" slot="toolbar" style="display:none"></solirom-infinite-loading-bar>
+                                <label slot="toolbar" for="entry-status-selector">Stare intrare</label>
+                                <select slot="toolbar" id="entry-status-selector" disabled="true">
+                                    <option value="unknown"></option>
+                                    <option value="validated">validată</option>
+                                    <option value="reviewed">revizuită</option>
+                                </select>                                
                             </teian-editor>                    
                         </div>
                     </div> 
@@ -93,13 +102,13 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
-        this.transcriptionLoadingBar = shadowRoot.querySelector("#transcription-loading-bar");
+        this.entryStatusSelector = shadowRoot.querySelector("#entry-status-selector");
+        this.selectedIncludeElement = null;
 
-        this.pageStatusSelector = shadowRoot.querySelector("#page-status-selector");
-        this.pbElement = null;
+        this.transcriptionStatusSelector = shadowRoot.querySelector("#transcription-status-selector");
+        this.selectedPbElement = null;
 
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
-        this.entryLoadingBar = shadowRoot.querySelector("#entry-loading-bar");
         this.saveEntryButton = shadowRoot.querySelector("#save-entry-button");
 
         shadowRoot.addEventListener("click", async (event) => {
@@ -132,7 +141,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
@@ -141,7 +150,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
                 transcriptionDetail.dispatchEvent(new Event("input"));
 
                 await this.saveEntry();
-                await document.querySelector("transcription-editor").saveTranscription();
+                await document.querySelector("data-editor").saveTranscription();
             }
         }, false);
 
@@ -149,16 +158,24 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             const target = event.composedPath()[0];
             
             if (target.matches(".transcription-reference, .transcription-reference *")) {
+                this.entryStatusSelector.disabled = false;
                 this.editEntry(); 
             }           
         }, false);        
         
-        shadowRoot.addEventListener("change", (event) => {
-            const target = event.target;
+        shadowRoot.addEventListener("change", async (event) => {
+            const target = event.composedPath()[0];
             
-            if (target.matches("#page-status-selector")) {
-                this.pbElement.setAttribute("cert", target.value);
-                solirom.actions.saveMetadata();
+            if (target.matches("#transcription-status-selector")) {
+                this.selectedPbElement.setAttribute("cert", target.value);
+                await solirom.actions.saveMetadata();
+            } 
+            
+            if (target.matches("#entry-status-selector")) {
+                window.solirom.controls.loadingSpinner.show();
+                this.selectedIncludeElement.setAttribute("cert", target.value);
+                await this.saveTranscription();
+                window.solirom.controls.loadingSpinner.hide();
             }            
         }, false); 
         
@@ -198,24 +215,15 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @public
      * @return void
      */    
-    async editTranscription(pbElement) {
-        this.transcriptionLoadingBar.show();
-        this.reset();
-        this.pbElement = pbElement;
-        const pageStatus = pbElement.getAttribute("cert");
-        this.pageStatusSelector.value = pageStatus;
+    async editTranscription(selectedPbElement) {
+        window.solirom.controls.loadingSpinner.show();
+        this.selectedPbElement = selectedPbElement;
+        this.transcriptionStatusSelector.value = selectedPbElement.getAttribute("cert");
 
-        var transcriptionPath = pbElement.getAttribute("corresp");
+        var transcriptionPath = selectedPbElement.getAttribute("corresp");
         solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, transcriptionPath], "/");
 
-        try {
-            await solirom.actions._getTranscription();
-        } catch (error) {
-            console.error(error);
-            this.transcriptionLoadingBar.hide();
-            alert("Eroare la încărcarea transcrierii.");
-            return;
-        }        
+        await solirom.actions._globalGetTranscription();        
 
 		solirom.controls.transcriptionEditor.setAttribute("status", "edit");
         solirom.controls.transcriptionEditor.setAttribute("src", "data:application/xml;" + solirom.data.transcription.contents);  
@@ -230,9 +238,14 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             }
         );
         Sortable.create(abElement, {
-            animation: 350
-        });  
-        this.transcriptionLoadingBar.hide();      
+            animation: 350,
+            onEnd: async () => {
+                solirom.controls.loadingSpinner.show();
+                await document.querySelector("data-editor").saveTranscription();                
+                solirom.controls.loadingSpinner.hide();
+            }
+        });
+        window.solirom.controls.loadingSpinner.hide();      
     }
 
     /**
@@ -241,10 +254,8 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @return void
      */    
     async saveTranscription() {
-        this.transcriptionLoadingBar.show();
         const username = document.querySelector("kuberam-login-element").username;
         var data = solirom.controls.transcriptionEditor.exportData();
-        console.log(data);
 
         var result;
         try {
@@ -262,14 +273,12 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            this.transcriptionLoadingBar.hide();
             alert("Transcrierea nu poate fi salvată.");
             return;
         }    
         solirom.data.transcription.sha = result.sha;
 
         solirom.controls.transcriptionEditor.setAttribute("status", "edit");
-        this.transcriptionLoadingBar.hide();        
     }    
 
     /**
@@ -278,13 +287,15 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @return void
      */    
     async editEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
+
+        this.entryStatusSelector.value = this.selectedIncludeElement.getAttribute("cert");        
 
         const entry = await solirom.actions._getEntry();
 
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
-        this.entryLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     /**
@@ -293,7 +304,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @return void
      */    
     async saveEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
         const username = document.querySelector("kuberam-login-element").username;
         const data = this.entryEditor.exportData();
 
@@ -313,7 +324,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi salvată.");
             return;
         }
@@ -321,7 +331,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         solirom.data.entry.sha = result.sha;
     
         this.entryEditor.setAttribute("status", "edit");
-        this.entryLoadingBar.hide();        
+        window.solirom.controls.loadingSpinner.hide();       
     }  
 
     /**
@@ -330,14 +340,13 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @return void
      */    
     async addEntry() {
-        this.entryLoadingBar.show();  
+        window.solirom.controls.loadingSpinner.show();  
         var entryId = "";
 
         try {
             entryId = await fetch("https://uuid.solirom.ro/cflr-" + solirom.data.work.id).then(response => response.text());
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Nu se poate genera un identificator pentru intrare.");
             return;
         }  
@@ -364,15 +373,14 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newEntryPath], "/");
 
             await this.saveEntry();
-            await document.querySelector("transcription-editor").saveTranscription();
+            await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi creată.");
             return;
         }
 
-        this.entryLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     /**
@@ -381,7 +389,7 @@ export default class TranscriptionEditorComponent extends HTMLElement {
      * @return void
      */    
     async deleteEntry() {
-        this.entryLoadingBar.show();
+        window.solirom.controls.loadingSpinner.show();
 
         const username = document.querySelector("kuberam-login-element").username;
 
@@ -402,7 +410,6 @@ export default class TranscriptionEditorComponent extends HTMLElement {
             });
         } catch (error) {
             console.error(error);
-            this.entryLoadingBar.hide();
             alert("Intrarea nu poate fi ștearsă.");
             return;
         }        
@@ -410,23 +417,19 @@ export default class TranscriptionEditorComponent extends HTMLElement {
         //reset the entry editor
         this.entryEditor.reset();
 
-        this.entryLoadingBar.hide();
-
         // remove the transcription reference
-        this.transcriptionLoadingBar.show();
         this.selectedIncludeElement.remove();
 
         // save the transcription
         try {
-            await document.querySelector("transcription-editor").saveTranscription();
+            await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
-            this.transcriptionLoadingBar.hide();
             alert("Transcrierea nu poate fi salvată.");
             return;
         }        
 
-        this.transcriptionLoadingBar.hide();
+        window.solirom.controls.loadingSpinner.hide();
     }
 
     toggleEntryReference(currentEntryReference) {
@@ -449,9 +452,10 @@ export default class TranscriptionEditorComponent extends HTMLElement {
  */
 solirom.actions.duplicateEntry = async () => {
     const currentTranscriptionPath = solirom.data.transcription.path;
-    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousSibling;
+    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
 
     if (previousTranscriptionReference !== null) {
+        window.solirom.controls.loadingSpinner.show();
         const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionReference.getAttribute("corresp"));
         const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
         const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
@@ -459,16 +463,8 @@ solirom.actions.duplicateEntry = async () => {
         solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
 
         // save the transcription
-        try {
-            console.log(solirom.data.transcription.path);
-            console.log(solirom.data.transcription.sha);
-            //await document.querySelector("transcription-editor").saveTranscription();
-        } catch (error) {
-            console.error(error);
-            //this.transcriptionLoadingBar.hide();
-            alert("Transcrierea nu poate fi salvată.");
-            return;
-        }         
+        await document.querySelector("data-editor").saveTranscription();
+        window.solirom.controls.loadingSpinner.hide();                 
     }
 };
 
@@ -480,7 +476,6 @@ solirom.actions.duplicateEntry = async () => {
 solirom.actions._getEntry = async () =>  {
     const path = solirom.data.entry.path;
     var result;
-    console.log(path);
 
     try {
         result = await solirom.data.repos.cflr.client({
@@ -493,7 +488,6 @@ solirom.actions._getEntry = async () =>  {
         result = result.data;		
     } catch (error) {
         console.error(error);
-        //this.entryLoadingBar.hide();
         alert("Eroare la încărcarea intrării.");
         return;
     }
@@ -511,10 +505,14 @@ solirom.actions._getEntry = async () =>  {
 };
 
 teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
-teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot>`;
+teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot name="t-gramgrp"></slot>`;
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
+            :host(*) {
+                width: 350px;
+                display: inline-block;
+            }
             #mini-editor {
                 background-color: white;
                 padding: 3px;
@@ -523,6 +521,17 @@ teian.frameworkDefinition["t-orth-template"] =
         </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
         <div id="mini-editor" contenteditable="true" data-ref="#text"></div>
+    `
+;
+teian.frameworkDefinition["t-gramgrp-template"] = 
+    `
+        <style>
+            #gramGrp {
+                width: 350px;
+                display: inline-block;
+            }
+        </style>
+        <input id="gramGrp" data-ref="#text" />
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
@@ -566,6 +575,12 @@ teian.frameworkDefinition["t-include-template"] =
                 box-sizing: border-box;
                 padding: 2px;
             }  
+            :host(*[cert='validated']) .transcription-reference {
+                border-left: 7px solid #f58d42;
+            } 
+            :host(*[cert='reviewed']) .transcription-reference {
+                border-left: 7px solid #5c9106;
+            }            
         </style>
         <div class="transcription-reference">
             <div class="drag-handler"></div><div class="transcription-detail" data-ref="@label"></div>
@@ -588,6 +603,11 @@ customElements.define("t-orth", class extends teian.formControlClass {
         super();
     }
 });
+customElements.define("t-gramgrp", class extends teian.formControlClass {
+    constructor() {
+        super();
+    }
+});
 customElements.define("t-ab", class extends teian.divClass {
     constructor() {
         super();
@@ -600,4 +620,4 @@ customElements.define("t-include", class extends teian.formControlClass {
     }
 });
 
-window.customElements.define("transcription-editor", TranscriptionEditorComponent);
+window.customElements.define("data-editor", DataEditorComponent);

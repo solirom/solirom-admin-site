@@ -106,7 +106,7 @@ teian.frameworkDefinition = {
                 <span class="fa-button drag-handler">&#xf0b2;</span>
                 <button class="fa-button" onclick="teian.actions.displayScan(this);" title="Afișare scan">&#xf15b;</button>
                 <button class="fa-button" onclick="solirom.actions.editTranscription(this);" title="Editare transcriere">&#xf14b;</button>
-                <input id="page-number" data-ref="@n" onfocus="teian.actions.selectPageBreak(this);" />            		
+                <input id="page-number" data-ref="@n" onfocus="teian.actions.selectPageBreak(this);" />
             </div>
         `
 };
@@ -151,9 +151,10 @@ teian.actions.displayScan = (element) => {
 };
 
 solirom.actions.editTranscription = async (element) => {
+    teian.actions.displayScan(element);
     solirom.actions.displayDataEditor();
     const hostElement = element.getRootNode().host;
-    document.querySelector("transcription-editor").editTranscription(hostElement);
+    document.querySelector("data-editor").editTranscription(hostElement);
 };
 
 teian.actions.selectPageBreak = (element) => {
