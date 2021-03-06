@@ -91,7 +91,15 @@ export default class TeianEditorComponent extends HTMLElement {
         }
     }
 
-    exportData() {
+    exportDataAsString() {
+        const resultDoc = this.exportDataAsXMLDocument();
+        var load = (new XMLSerializer()).serializeToString(resultDoc);
+        //load = load.replace(/&amp;nbsp;/g, " ");    
+        
+        return load;
+    }
+
+    exportDataAsXMLDocument() {
         var content = this.shadowRoot.querySelector("#content > *");
         content = (new XMLSerializer()).serializeToString(content);
         content = content.replace("&nbsp;", "&#160;");
@@ -131,12 +139,11 @@ export default class TeianEditorComponent extends HTMLElement {
         var xsltProcessor = new XSLTProcessor();    
         xsltProcessor.importStylesheet(xsltDoc);
         const resultDoc = xsltProcessor.transformToDocument(content);
+        // TODO; remove teian.dataInstances.outputData
         teian.dataInstances.outputData = resultDoc;
-        var load = (new XMLSerializer()).serializeToString(resultDoc);
-        //load = load.replace(/&amp;nbsp;/g, " ");    
-        
-        return load;
-    }
+
+        return resultDoc;
+    }    
     
     reset() {
 		this.setAttribute("status", "new");

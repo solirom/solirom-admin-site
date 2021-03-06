@@ -141,7 +141,7 @@ export default class DataEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
@@ -280,7 +280,7 @@ export default class DataEditorComponent extends HTMLElement {
      */    
     async saveTranscription() {
         const username = document.querySelector("kuberam-login-element").username;
-        var data = solirom.controls.transcriptionEditor.exportData();
+        var data = solirom.controls.transcriptionEditor.exportDataAsString();
 
         var result;
         try {
@@ -334,15 +334,16 @@ export default class DataEditorComponent extends HTMLElement {
     async saveEntry() {
         window.solirom.controls.loadingSpinner.show();
         const username = document.querySelector("kuberam-login-element").username;
-        const data = this.entryEditor.exportData();
+        const entry = this.entryEditor.exportDataAsString();
 
+        // save the entry in dictionary
         var result;
         try {
             result = await solirom.data.repos.cflr.client({
                 method: "PUT",
                 path: solirom.data.entry.path,
                 "sha": solirom.data.entry.sha,                
-                content: solirom.actions.b64EncodeUnicode(data),
+                content: solirom.actions.b64EncodeUnicode(entry),
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -357,8 +358,92 @@ export default class DataEditorComponent extends HTMLElement {
         }
     
         solirom.data.entry.sha = result.sha;
-    
         this.entryEditor.setAttribute("status", "edit");
+
+        // save the entry in lexicon
+        var lexiconEntryAsElement = this.entryEditor.exportDataAsXMLDocument().documentElement.querySelector("*|entryFree[type = 'lemma']");
+        var lexiconEntryAsString = (new XMLSerializer()).serializeToString(lexiconEntryAsElement);
+        const idnoElement = this.entryEditor.shadowRoot.querySelector("*[data-name = 'idno'][type  = 'lexicon']");
+        var lexiconId = idnoElement.dataset.value;
+
+        if (lexiconId === "") {
+            try {
+                lexiconId = await fetch("https://uuid.solirom.ro/lexicon").then(response => response.text());
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate genera un identificator pentru intrarea din lexicon.");
+
+                return;
+            }
+            lexiconEntryAsElement.setAttribute("xml:id", lexiconId);
+            lexiconEntryAsString = (new XMLSerializer()).serializeToString(lexiconEntryAsElement);
+
+            try {
+                await solirom.data.repos.cflr.client({
+                    method: "PUT",
+                    path: lexiconId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
+                    "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                    "committer": {
+                        "email": username,
+                        "name": username
+                    },
+                });    
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate salva intrarea în lexicon.");
+
+                return;
+            }
+
+            idnoElement.dataset.value = lexiconId;
+        } else {
+            // get the SHA of the lexicon entry
+            var result;
+            try {
+                result = await solirom.data.repos.cflr.client({
+                    method: "GET",
+                    path: lexiconId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    headers: {
+                        'If-None-Match': ''
+                      }	
+                });
+                result = result.data;		
+            } catch (error) {
+                console.error(error);
+                alert("Intrarea din lexicon nu poate fi încărcată.");
+    
+                return;
+            }
+            const entrySha = result.sha;
+
+            // save the lexicon entry
+            try {
+                await solirom.data.repos.cflr.client({
+                    method: "PUT",
+                    path: lexiconId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    sha: entrySha,
+                    content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
+                    "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                    "committer": {
+                        "email": username,
+                        "name": username
+                    },
+                });    
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate salva intrarea în lexicon.");
+
+                return;
+            }
+        }
+
         window.solirom.controls.loadingSpinner.hide();       
     }  
 
