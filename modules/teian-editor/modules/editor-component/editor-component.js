@@ -144,6 +144,10 @@ export default class TeianEditorComponent extends HTMLElement {
 
         return resultDoc;
     }    
+
+    getContents() {
+        return this.contentContainer;
+    }
     
     reset() {
 		this.setAttribute("status", "new");

@@ -16,12 +16,10 @@ solirom.data.templates.entryFile =
         </entry>
         <note>
             <editor role="transcriber">${props => props.author}</editor>
-            <editor role="reviewer"/>
         </note>
         <entryFree type="lemma">
             <form>
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
-                <gramGrp/>
             </form>
             <idno type="lexicon"/>
         </entryFree>                
@@ -29,7 +27,15 @@ solirom.data.templates.entryFile =
 ;
 solirom.data.templates.entryReference =
     solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="unknown" class="list-group-item" draggable="true"></t-include>`
-;        
+;
+solirom.data.templates.editor =
+    solirom.actions.html`<t-editor data-name="editor" data-ns="http://www.tei-c.org/ns/1.0" data-value="${props => props.username}" slot="t-editor" role="${props => props.userRole}"></t-editor>`
+; 
+solirom.data.templates.lexiconEntry = 
+    solirom.actions.html`<entryFree xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}"><form><orth n="${props => props.homonymNumber}" xml:lang="ro-x-accent-upcase-vowels">${props => props.headword}</orth><gramGrp>${props => props.gramGrp}</gramGrp></form></entryFree>
+
+    `
+;       
 solirom.data.entry = {
 	"sha": "",
 	"path": ""
@@ -213,16 +219,11 @@ export default class DataEditorComponent extends HTMLElement {
                 if (formType === "headword") {
                     const lemmaFormElement = formElement.closest("*[data-name = 'body']").querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'form']");
                     const lemmaOrthElement = lemmaFormElement.querySelector("[data-name = 'orth']").shadowRoot.querySelector("#orth-mini-editor");
-                    const lemmaGramGrpElement = lemmaFormElement.querySelector("[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input");
 
                     const orthValue = formElement.querySelector("[data-name = 'orth']").dataset.value;
-                    const gramGrpValue = formElement.querySelector("[data-name = 'gramGrp']").dataset.value;
                     
                     lemmaOrthElement.textContent = orthValue;
                     lemmaOrthElement.dispatchEvent(new Event("input"));
-
-                    lemmaGramGrpElement.value = gramGrpValue;
-                    lemmaGramGrpElement.dispatchEvent(new Event("input"));
                 }
                  
             }           
@@ -334,9 +335,18 @@ export default class DataEditorComponent extends HTMLElement {
     async saveEntry() {
         window.solirom.controls.loadingSpinner.show();
         const username = document.querySelector("kuberam-login-element").username;
-        const entry = this.entryEditor.exportDataAsString();
+        const userRole = document.querySelector("kuberam-login-element").userRole;
+
+        const editorElements = this.entryEditor.getContents().querySelectorAll("*[data-name = 'editor'][role = '" + userRole + "'][data-value = '" + username + "']");
+        if (editorElements.length === 0) {
+            const editorAsString = solirom.data.templates.editor({"username": username, "userRole": userRole});
+            const personsElement = this.entryEditor.getContents().querySelector("*[data-name = 'note'][type = 'persons']");
+            personsElement.insertAdjacentHTML("afterbegin", editorAsString);
+        }
 
         // save the entry in dictionary
+        const entry = this.entryEditor.exportDataAsString();
+
         var result;
         try {
             result = await solirom.data.repos.cflr.client({
@@ -361,27 +371,32 @@ export default class DataEditorComponent extends HTMLElement {
         this.entryEditor.setAttribute("status", "edit");
 
         // save the entry in lexicon
-        var lexiconEntryAsElement = this.entryEditor.exportDataAsXMLDocument().documentElement.querySelector("*|entryFree[type = 'lemma']");
-        var lexiconEntryAsString = (new XMLSerializer()).serializeToString(lexiconEntryAsElement);
-        const idnoElement = this.entryEditor.shadowRoot.querySelector("*[data-name = 'idno'][type  = 'lexicon']");
-        var lexiconId = idnoElement.dataset.value;
+        const editorContents = this.entryEditor.getContents();
+        const lemmaOrthElement = editorContents.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']");
+        const headword = lemmaOrthElement.dataset.value;
 
-        if (lexiconId === "") {
+        const homonymNumber = editorContents.querySelector("*[data-name = 'orth']").getAttribute("n");
+        const gramGrp = editorContents.querySelector("*[data-name = 'gramGrp']").dataset.value;
+        const lexiconEntryIdElement = editorContents.querySelector("*[data-name = 'idno'][type = 'lexicon']");
+        var lexiconEntryId = lexiconEntryIdElement.dataset.value;
+
+        var lexiconEntryAsString = solirom.data.templates.lexiconEntry({"id": lexiconEntryId, "headword": headword, "homonymNumber": homonymNumber, "gramGrp": gramGrp});
+
+        if (lexiconEntryId === "") {
             try {
-                lexiconId = await fetch("https://uuid.solirom.ro/lexicon").then(response => response.text());
+                lexiconEntryId = await fetch("https://uuid.solirom.ro/lexicon").then(response => response.text());
             } catch (error) {
                 console.error(error);
                 alert("Nu se poate genera un identificator pentru intrarea din lexicon.");
 
                 return;
             }
-            lexiconEntryAsElement.setAttribute("xml:id", lexiconId);
-            lexiconEntryAsString = (new XMLSerializer()).serializeToString(lexiconEntryAsElement);
+            lexiconEntryAsString = solirom.data.templates.lexiconEntry({"id": lexiconEntryId, "headword": headword, "homonymNumber": homonymNumber, "gramGrp": gramGrp});
 
             try {
                 await solirom.data.repos.cflr.client({
                     method: "PUT",
-                    path: lexiconId,
+                    path: lexiconEntryId,
                     owner: "solirom",
                     repo: "lexicon",
                     content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
@@ -398,14 +413,14 @@ export default class DataEditorComponent extends HTMLElement {
                 return;
             }
 
-            idnoElement.dataset.value = lexiconId;
+            lexiconEntryIdElement.dataset.value = lexiconEntryId;
         } else {
             // get the SHA of the lexicon entry
             var result;
             try {
                 result = await solirom.data.repos.cflr.client({
                     method: "GET",
-                    path: lexiconId,
+                    path: lexiconEntryId,
                     owner: "solirom",
                     repo: "lexicon",
                     headers: {
@@ -425,7 +440,7 @@ export default class DataEditorComponent extends HTMLElement {
             try {
                 await solirom.data.repos.cflr.client({
                     method: "PUT",
-                    path: lexiconId,
+                    path: lexiconEntryId,
                     owner: "solirom",
                     repo: "lexicon",
                     sha: entrySha,

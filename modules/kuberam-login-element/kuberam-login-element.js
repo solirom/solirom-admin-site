@@ -12,9 +12,12 @@ export default class KuberamLoginElement extends HTMLElement {
         
         this.username = "";
         this.userFullName = "";
+        this.userRole = "";
+
         if (localStorage.getItem('kuberam.loginElement.username')) {
             this.username = localStorage.getItem('kuberam.loginElement.username');
             this.userFullName = localStorage.getItem('kuberam.loginElement.userFullName');
+            this.userRole = localStorage.getItem('kuberam.loginElement.userRole');
         } 
         
         shadowRoot.innerHTML = 
@@ -62,18 +65,22 @@ export default class KuberamLoginElement extends HTMLElement {
         document.addEventListener('kuberam.loginElement.events.login', event => {
             const selectElement = this.usersElement;
             const username = selectElement.value;
-            const userFullName = selectElement.options[selectElement.selectedIndex].textContent;
-            
+            const selectedUserElement = selectElement.options[selectElement.selectedIndex];
+            const userFullName = selectedUserElement.textContent;
+            const userRole = selectedUserElement.dataset.role;
+           
             this.usernameElement.innerHTML = userFullName;
             
             this.username = username;
             this.userFullName = userFullName;
+            this.userRole = userRole;
             
             this.loginForm.style.display = "none";
             this.loggedInForm.style.display = "block";     
             
             localStorage.setItem("kuberam.loginElement.username", username);
             localStorage.setItem('kuberam.loginElement.userFullName', userFullName);
+            localStorage.setItem('kuberam.loginElement.userRole', userRole);
         });   
     }
 }
