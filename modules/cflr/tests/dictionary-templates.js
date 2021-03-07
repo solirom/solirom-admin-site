@@ -324,6 +324,7 @@ export default class DataEditorComponent extends HTMLElement {
 
         // TODO: Remove when removing the second gramGrp
         this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input").disabled = true;
+        this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']").shadowRoot.querySelector("#homonym-number-input").disabled = true;
 
         window.solirom.controls.loadingSpinner.hide();
     }
@@ -664,8 +665,8 @@ teian.frameworkDefinition["t-orth-template"] =
             }
         </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
-        <input id="homonym-number-input" data-ref="@n" placeholder="Nr. omonim"/>
-        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
+        <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
+        <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
     `
 ;
 teian.frameworkDefinition["t-gramgrp-template"] = 
@@ -677,7 +678,7 @@ teian.frameworkDefinition["t-gramgrp-template"] =
                 border: 1px solid black;
             }
         </style>
-        <input id="gramGrp-input" data-ref="#text" />
+        <input id="gramGrp-input" data-ref="#text" title="Indicații gramaticale"/>
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
