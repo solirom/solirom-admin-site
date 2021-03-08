@@ -139,7 +139,7 @@ export default class DataEditorComponent extends HTMLElement {
             }
 
             if (target.matches("#duplicate-entry-button")) {
-                await solirom.actions.duplicateEntry();
+                await this.duplicateEntry();
             }
             
             if (target.matches("#delete-entry-button")) {
@@ -321,10 +321,6 @@ export default class DataEditorComponent extends HTMLElement {
 
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
-
-        // TODO: Remove when removing the second gramGrp
-        this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input").disabled = true;
-        this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']").shadowRoot.querySelector("#homonym-number-input").disabled = true;
 
         window.solirom.controls.loadingSpinner.hide();
     }
@@ -514,6 +510,30 @@ export default class DataEditorComponent extends HTMLElement {
     }
 
     /**
+     * Duplicates the last entry reference of the previous transcription
+     * @private
+     * @return {string}
+     */
+    async duplicateEntry() {
+        const currentTranscriptionPath = this.selectedPbElement.getAttribute("corresp");
+        const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
+
+        if (previousTranscriptionReference !== null) {
+            window.solirom.controls.loadingSpinner.show();
+            const previousTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, previousTranscriptionReference.getAttribute("corresp")], "/");
+            const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionPath);
+            const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
+            const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
+            const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label")});
+            solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
+
+            // save the transcription
+            await document.querySelector("data-editor").saveTranscription();
+            window.solirom.controls.loadingSpinner.hide();                 
+        }
+    };    
+
+    /**
      * Deletes the selected entry
      * @public
      * @return void
@@ -573,29 +593,6 @@ export default class DataEditorComponent extends HTMLElement {
         solirom.data.transcription.sha = "";
         solirom.data.entry.sha = "";
     }    
-};
-
-/**
- * Deplicates the last entry reference of the previous transcription
- * @private
- * @return {string}
- */
-solirom.actions.duplicateEntry = async () => {
-    const currentTranscriptionPath = solirom.data.transcription.path;
-    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
-
-    if (previousTranscriptionReference !== null) {
-        window.solirom.controls.loadingSpinner.show();
-        const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionReference.getAttribute("corresp"));
-        const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
-        const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
-        const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label")});
-        solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
-
-        // save the transcription
-        await document.querySelector("data-editor").saveTranscription();
-        window.solirom.controls.loadingSpinner.hide();                 
-    }
 };
 
 /**

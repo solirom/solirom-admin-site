@@ -90,7 +90,7 @@ document.addEventListener("click", async (event) => {
 	}
 	
     if (target.matches("#save-button")) {
-		solirom.actions.saveMetadata();
+		await solirom.actions.saveMetadata();
 	}
 
     if (target.matches("#zoom-in-button")) {

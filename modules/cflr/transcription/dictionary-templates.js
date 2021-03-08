@@ -16,12 +16,10 @@ solirom.data.templates.entryFile =
         </entry>
         <note>
             <editor role="transcriber">${props => props.author}</editor>
-            <editor role="reviewer"/>
         </note>
         <entryFree type="lemma">
             <form>
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
-                <gramGrp/>
             </form>
             <idno type="lexicon"/>
         </entryFree>                
@@ -29,7 +27,15 @@ solirom.data.templates.entryFile =
 ;
 solirom.data.templates.entryReference =
     solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="unknown" class="list-group-item" draggable="true"></t-include>`
-;        
+;
+solirom.data.templates.editor =
+    solirom.actions.html`<t-editor data-name="editor" data-ns="http://www.tei-c.org/ns/1.0" data-value="${props => props.username}" slot="t-editor" role="${props => props.userRole}"></t-editor>`
+; 
+solirom.data.templates.lexiconEntry = 
+    solirom.actions.html`<entryFree xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}"><form><orth n="${props => props.homonymNumber}" xml:lang="ro-x-accent-upcase-vowels">${props => props.headword}</orth><gramGrp>${props => props.gramGrp}</gramGrp></form></entryFree>
+
+    `
+;       
 solirom.data.entry = {
 	"sha": "",
 	"path": ""
@@ -133,7 +139,7 @@ export default class DataEditorComponent extends HTMLElement {
             }
 
             if (target.matches("#duplicate-entry-button")) {
-                await solirom.actions.duplicateEntry();
+                await this.duplicateEntry();
             }
             
             if (target.matches("#delete-entry-button")) {
@@ -141,7 +147,7 @@ export default class DataEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'orth'], *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
@@ -213,16 +219,11 @@ export default class DataEditorComponent extends HTMLElement {
                 if (formType === "headword") {
                     const lemmaFormElement = formElement.closest("*[data-name = 'body']").querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'form']");
                     const lemmaOrthElement = lemmaFormElement.querySelector("[data-name = 'orth']").shadowRoot.querySelector("#orth-mini-editor");
-                    const lemmaGramGrpElement = lemmaFormElement.querySelector("[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input");
 
                     const orthValue = formElement.querySelector("[data-name = 'orth']").dataset.value;
-                    const gramGrpValue = formElement.querySelector("[data-name = 'gramGrp']").dataset.value;
                     
                     lemmaOrthElement.textContent = orthValue;
                     lemmaOrthElement.dispatchEvent(new Event("input"));
-
-                    lemmaGramGrpElement.value = gramGrpValue;
-                    lemmaGramGrpElement.dispatchEvent(new Event("input"));
                 }
                  
             }           
@@ -280,7 +281,7 @@ export default class DataEditorComponent extends HTMLElement {
      */    
     async saveTranscription() {
         const username = document.querySelector("kuberam-login-element").username;
-        var data = solirom.controls.transcriptionEditor.exportData();
+        var data = solirom.controls.transcriptionEditor.exportDataAsString();
 
         var result;
         try {
@@ -321,8 +322,6 @@ export default class DataEditorComponent extends HTMLElement {
 		this.entryEditor.setAttribute("status", "edit");
         this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
 
-        this.entryEditor.shadowRoot.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'gramGrp']").shadowRoot.querySelector("#gramGrp-input").disabled = true;
-
         window.solirom.controls.loadingSpinner.hide();
     }
 
@@ -334,7 +333,17 @@ export default class DataEditorComponent extends HTMLElement {
     async saveEntry() {
         window.solirom.controls.loadingSpinner.show();
         const username = document.querySelector("kuberam-login-element").username;
-        const data = this.entryEditor.exportData();
+        const userRole = document.querySelector("kuberam-login-element").userRole;
+
+        const editorElements = this.entryEditor.getContents().querySelectorAll("*[data-name = 'editor'][role = '" + userRole + "'][data-value = '" + username + "']");
+        if (editorElements.length === 0) {
+            const editorAsString = solirom.data.templates.editor({"username": username, "userRole": userRole});
+            const personsElement = this.entryEditor.getContents().querySelector("*[data-name = 'note'][type = 'persons']");
+            personsElement.insertAdjacentHTML("afterbegin", editorAsString);
+        }
+
+        // save the entry in dictionary
+        const entry = this.entryEditor.exportDataAsString();
 
         var result;
         try {
@@ -342,7 +351,7 @@ export default class DataEditorComponent extends HTMLElement {
                 method: "PUT",
                 path: solirom.data.entry.path,
                 "sha": solirom.data.entry.sha,                
-                content: solirom.actions.b64EncodeUnicode(data),
+                content: solirom.actions.b64EncodeUnicode(entry),
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -357,8 +366,97 @@ export default class DataEditorComponent extends HTMLElement {
         }
     
         solirom.data.entry.sha = result.sha;
-    
         this.entryEditor.setAttribute("status", "edit");
+
+        // save the entry in lexicon
+        const editorContents = this.entryEditor.getContents();
+        const lemmaOrthElement = editorContents.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']");
+        const headword = lemmaOrthElement.dataset.value;
+
+        const homonymNumber = editorContents.querySelector("*[data-name = 'orth']").getAttribute("n");
+        const gramGrp = editorContents.querySelector("*[data-name = 'gramGrp']").dataset.value;
+        const lexiconEntryIdElement = editorContents.querySelector("*[data-name = 'idno'][type = 'lexicon']");
+        var lexiconEntryId = lexiconEntryIdElement.dataset.value;
+
+        var lexiconEntryAsString = solirom.data.templates.lexiconEntry({"id": lexiconEntryId, "headword": headword, "homonymNumber": homonymNumber, "gramGrp": gramGrp});
+
+        if (lexiconEntryId === "") {
+            try {
+                lexiconEntryId = await fetch("https://uuid.solirom.ro/lexicon").then(response => response.text());
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate genera un identificator pentru intrarea din lexicon.");
+
+                return;
+            }
+            lexiconEntryAsString = solirom.data.templates.lexiconEntry({"id": lexiconEntryId, "headword": headword, "homonymNumber": homonymNumber, "gramGrp": gramGrp});
+
+            try {
+                await solirom.data.repos.cflr.client({
+                    method: "PUT",
+                    path: lexiconEntryId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
+                    "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                    "committer": {
+                        "email": username,
+                        "name": username
+                    },
+                });    
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate salva intrarea în lexicon.");
+
+                return;
+            }
+
+            lexiconEntryIdElement.dataset.value = lexiconEntryId;
+        } else {
+            // get the SHA of the lexicon entry
+            var result;
+            try {
+                result = await solirom.data.repos.cflr.client({
+                    method: "GET",
+                    path: lexiconEntryId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    headers: {
+                        'If-None-Match': ''
+                      }	
+                });
+                result = result.data;		
+            } catch (error) {
+                console.error(error);
+                alert("Intrarea din lexicon nu poate fi încărcată.");
+    
+                return;
+            }
+            const entrySha = result.sha;
+
+            // save the lexicon entry
+            try {
+                await solirom.data.repos.cflr.client({
+                    method: "PUT",
+                    path: lexiconEntryId,
+                    owner: "solirom",
+                    repo: "lexicon",
+                    sha: entrySha,
+                    content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
+                    "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                    "committer": {
+                        "email": username,
+                        "name": username
+                    },
+                });    
+            } catch (error) {
+                console.error(error);
+                alert("Nu se poate salva intrarea în lexicon.");
+
+                return;
+            }
+        }
+
         window.solirom.controls.loadingSpinner.hide();       
     }  
 
@@ -410,6 +508,30 @@ export default class DataEditorComponent extends HTMLElement {
 
         window.solirom.controls.loadingSpinner.hide();
     }
+
+    /**
+     * Duplicates the last entry reference of the previous transcription
+     * @private
+     * @return {string}
+     */
+    async duplicateEntry() {
+        const currentTranscriptionPath = this.selectedPbElement.getAttribute("corresp");
+        const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
+
+        if (previousTranscriptionReference !== null) {
+            window.solirom.controls.loadingSpinner.show();
+            const previousTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, previousTranscriptionReference.getAttribute("corresp")], "/");
+            const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionPath);
+            const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
+            const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
+            const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label")});
+            solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
+
+            // save the transcription
+            await document.querySelector("data-editor").saveTranscription();
+            window.solirom.controls.loadingSpinner.hide();                 
+        }
+    };    
 
     /**
      * Deletes the selected entry
@@ -474,29 +596,6 @@ export default class DataEditorComponent extends HTMLElement {
 };
 
 /**
- * Deplicates the last entry reference of the previous transcription
- * @private
- * @return {string}
- */
-solirom.actions.duplicateEntry = async () => {
-    const currentTranscriptionPath = solirom.data.transcription.path;
-    const previousTranscriptionReference = solirom.controls.metadataEditor.shadowRoot.querySelector("*[data-name = 'pb'][corresp = '" + currentTranscriptionPath + "']").previousElementSibling;
-
-    if (previousTranscriptionReference !== null) {
-        window.solirom.controls.loadingSpinner.show();
-        const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionReference.getAttribute("corresp"));
-        const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
-        const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
-        const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label")});
-        solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
-
-        // save the transcription
-        await document.querySelector("data-editor").saveTranscription();
-        window.solirom.controls.loadingSpinner.hide();                 
-    }
-};
-
-/**
  * Gets an entry
  * @private
  * @return {string}
@@ -558,9 +657,13 @@ teian.frameworkDefinition["t-orth-template"] =
                 padding: 3px;
                 border: 1px solid black;
             }
+            #homonym-number-input {
+                width: 50px;
+            }
         </style>
         <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
-        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
+        <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
+        <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
     `
 ;
 teian.frameworkDefinition["t-gramgrp-template"] = 
@@ -572,7 +675,7 @@ teian.frameworkDefinition["t-gramgrp-template"] =
                 border: 1px solid black;
             }
         </style>
-        <input id="gramGrp-input" data-ref="#text" />
+        <input id="gramGrp-input" data-ref="#text" title="Indicații gramaticale"/>
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
