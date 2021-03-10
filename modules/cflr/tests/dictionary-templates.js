@@ -560,8 +560,10 @@ export default class DataEditorComponent extends HTMLElement {
             });
         } catch (error) {
             console.error(error);
-            alert("Intrarea nu poate fi ștearsă.");
-            return;
+            window.solirom.controls.loadingSpinner.hide();
+            //TODO: When an entry is deleted, it has to be deleted from all the transcriptions it is referred within
+            //alert("Intrarea nu poate fi ștearsă.");
+            //return;
         }        
 
         //reset the entry editor
@@ -615,7 +617,8 @@ solirom.actions._getEntry = async () =>  {
         result = result.data;		
     } catch (error) {
         console.error(error);
-        alert("Eroare la încărcarea intrării.");
+        // TODO: When an entry is deleted, it has to be deleted from all the transcriptions it is referred within
+        //alert("Eroare la încărcarea intrării.");
         return;
     }
 

@@ -14,7 +14,7 @@ export default class LanguageSelectorComponent extends HTMLElement {
         const selectorLanguages = this.dataset.languages.split(",").map(item => item.trim());
         this.masterContentContainer = shadowRoot.querySelector("#master-content");
         this.languages = [
-            ["ro-x-accent-upcase-vowels", "ro., lat., maj. acc.", ["Á", "É", "Í", "Ó", "Ú", "Ắ", "Ấ", "Î́", "È"]],
+            ["ro-x-accent-upcase-vowels", "ro., lat., maj. acc.", ["Á", "É", "Í", "Ó", "Ú", "Ắ", "Ấ", "Î́", "À", "È", "Ì", "Ò", "Ù"]],
             ["ru-Cyrs", "rusă, chirilice vechi", ["а", "б", "в", "г", "д", "є", "ж", "ѕ", "ӡ", "и", "й", "к", "ʌ", "м", "ɴ", "o", "п", "р", "с", "т", "ѹ", "ꙋ", "ф", "х", "ѡ", "ц", "ч", "ш", "ш̩", "ъ", "ѣ", "ю", "ѩ", "ѥ", "ѧ", "ѫ", "ѯ", "ѱ", "ө", "ѵ", "ꙟ", "џ"]],
             ["el-x-lowcase", "greacă, minuscule", ["α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π", "ρ", "ς", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"]]
         ];
