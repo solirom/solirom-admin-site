@@ -58,7 +58,6 @@ export default class DataEditorComponent extends HTMLElement {
                         height: 990px; 
                     }                
                     #content, option {
-                        
                         font-size: 12px;
                     }
                     #master > * {
@@ -146,7 +145,7 @@ export default class DataEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
