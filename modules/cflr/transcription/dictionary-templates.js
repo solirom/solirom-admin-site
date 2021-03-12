@@ -14,7 +14,7 @@ solirom.data.templates.entryFile =
                 <gramGrp/>
             </form>
         </entry>
-        <note>
+        <note type="persons">
             <editor role="transcriber">${props => props.author}</editor>
         </note>
         <entryFree type="lemma">

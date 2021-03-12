@@ -12,9 +12,6 @@ solirom.data.repos = {
 	},	
 	"cflr": {
 		"client": {},
-		"sha": {
-			"index": ""
-		},
 		"transcriptionsPath": "transcriptions"
 	},
 	"lowResScan": {
@@ -32,7 +29,6 @@ solirom.data.work = {
 	"id": ""
 };
 solirom.data.transcription = {
-	"sha": "",
 	"path": "",
 	"contents": ""
 };
@@ -167,7 +163,6 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 		return;
 	}
 
-	solirom.data.repos.cflr.sha.index = result.sha;
 	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
 	document.querySelector("#scan").src = "";
@@ -285,7 +280,7 @@ document.addEventListener("change", async (event) => {
 		});
 		
 		for (let file of files) {
-			await solirom.actions.saveScan(file);
+			await solirom.actions.addScan(file);
 		}
 
 		await solirom.actions.saveMetadata();
@@ -369,7 +364,6 @@ document.addEventListener("change", async (event) => {
 			return;
 		}
 	
-		solirom.data.repos.cflr.sha.index = result.sha;
 		const contents = solirom.actions.b64DecodeUnicode(result.content);
 
 		solirom.controls.metadataEditor.setAttribute("status", "edit");
@@ -392,6 +386,7 @@ solirom.actions.saveMetadata = async () => {
 	const username = document.querySelector("kuberam-login-element").username;
 	const indexFilePath = solirom.actions.composePath([solirom.data.work.volumeNumber, "index.xml"], "/");
 	var data = teian.utils.unloadData();
+	const sha = await solirom.actions.getSHA(indexFilePath);
 
 	var result;
 	try {
@@ -399,7 +394,7 @@ solirom.actions.saveMetadata = async () => {
 			method: "PUT",
 			path: indexFilePath,
 			content: solirom.actions.b64EncodeUnicode(data),
-			"sha": solirom.data.repos.cflr.sha.index,
+			"sha": sha,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
 				"email": username,
@@ -413,8 +408,6 @@ solirom.actions.saveMetadata = async () => {
 
 		return;
 	}
-
-	solirom.data.repos.cflr.sha.index = result.sha;
 
 	solirom.controls.metadataEditor.setAttribute("status", "edit");
 	solirom.controls.loadingSpinner.hide();	
@@ -477,7 +470,7 @@ solirom.actions.checkFileSize = (file) => {
     return isLegalSize;
 };
 
-solirom.actions.saveScan = async (file) => {
+solirom.actions.addScan = async (file) => {
 	solirom.controls.loadingSpinner.show();	
 	const isLegalSize = solirom.actions.checkFileSize(file);
 	
@@ -531,7 +524,6 @@ solirom.actions.saveScan = async (file) => {
 
 		return;
 	}
-	solirom.data.transcription.sha = result.sha;
 
 	solirom.controls.loadingSpinner.hide();		
 };
@@ -594,12 +586,13 @@ solirom.actions.deleteTranscription = async () => {
 	
 	const transcriptionDocument = (new DOMParser()).parseFromString(solirom.data.transcription.contents, "application/xml").documentElement;
 	const entryIncludeElements = transcriptionDocument.querySelectorAll("*|include");
+	const transcriptionSha = await solirom.actions.getSHA(solirom.data.transcription.path);
 
 	try {
 		await solirom.data.repos.cflr.client({
 			"method": "DELETE",
 			"path": solirom.data.transcription.path,
-			"sha": solirom.data.transcription.sha,
+			"sha": transcriptionSha,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
 				"email": username,
@@ -640,7 +633,6 @@ solirom.actions.deleteTranscription = async () => {
 solirom.actions._globalGetTranscription = async () => {
 	const result = await solirom.actions._getTranscription(solirom.data.transcription.path);
 
-	solirom.data.transcription.sha = result.sha;
 	solirom.data.transcription.contents = result.contents;		
 };
 
@@ -681,7 +673,23 @@ solirom.actions.displayDataEditor = () => {
     document.querySelector("#metadata-editor-container").style.display = "none";
     document.querySelector("#data-editor-container").style.display = "inline-block";	
 };
+solirom.actions.getSHA = async (path) => {
+	var sha = "";
+	try {
+		sha = await solirom.data.repos.cflr.client({
+			method: "HEAD",
+			path: path,
+			headers: {
+				'If-None-Match': ''
+			  }	
+		});
+		sha = sha.headers.etag;
+		sha = sha.replace("W/", "").replaceAll('"', '').trim();
+	} catch (error) {
+	}	
 
+	return sha;
+};
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {
 	replace: function(suggestion) {
 		this.input.value = suggestion.label;
