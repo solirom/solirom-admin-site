@@ -64,7 +64,7 @@ document.querySelector("#metadata-editor-container").addEventListener("teian-fil
 }, false);
 
 document.addEventListener("kuberam.loginElement.events.logout", event => {
-    solirom.controls.metadataEditor.reset();
+	solirom.actions.resetUI();	
 });
 
 document.addEventListener("teian-file-opened", event => {
@@ -121,10 +121,7 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	volumeSelector.style.display = "none";
 	volumeSelector.innerHTML = "";
 	if (Object.keys(solirom.data.search.result).length !== 0) {
-		const dataEditor = document.querySelector("data-editor");
-		dataEditor.transcriptionEditor.reset();
-		dataEditor.entryEditor.reset();
-		solirom.actions.displayMetadataEditor();	
+		solirom.actions.resetUI();	
 	}
     
 	const selectedItemValue = event.text.value;
@@ -165,11 +162,8 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 
 	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
-	document.querySelector("#scan").src = "";
 	solirom.controls.metadataEditor.reset();
-	document.querySelector("#add-scan").disabled = true;
-	document.querySelector("#replace-scan").disabled = true;
-	document.querySelector("#delete-scan").disabled = true;			
+	solirom.actions.resetScanViewer();
 	
 	const indexDocument = (new DOMParser()).parseFromString(contents, "application/xml").documentElement;
 	const workType = indexDocument.getAttribute("type");
@@ -377,6 +371,8 @@ document.addEventListener("change", async (event) => {
 		document.querySelector("#scan").src = "";
 		document.querySelector("#add-scan").disabled = false;
 		document.querySelector("#replace-scan").disabled = false;
+		document.querySelector("#zoom-in-button").disabled = false;
+		document.querySelector("#zoom-out-button").disabled = false;		
 		setTimeout(() => document.querySelector("#save-button").disabled = true, 100);   
 	}
 }, false);
@@ -690,6 +686,23 @@ solirom.actions.getSHA = async (path) => {
 
 	return sha;
 };
+solirom.actions.resetUI = () => {
+	solirom.controls.metadataEditor.reset();
+	const dataEditor = document.querySelector("data-editor");
+	dataEditor.transcriptionEditor.reset();
+	dataEditor.entryEditor.reset();
+	solirom.actions.resetScanViewer();
+	solirom.actions.displayMetadataEditor();
+};
+solirom.actions.resetScanViewer = () => {
+	document.querySelector("#scan").src = "";	
+	document.querySelector("#add-scan").disabled = true;
+	document.querySelector("#replace-scan").disabled = true;
+	document.querySelector("#delete-scan").disabled = true;
+	document.querySelector("#zoom-in-button").disabled = true;
+	document.querySelector("#zoom-out-button").disabled = true;
+};
+
 solirom.controls.search = new Awesomplete(document.getElementById("search-string"), {
 	replace: function(suggestion) {
 		this.input.value = suggestion.label;
