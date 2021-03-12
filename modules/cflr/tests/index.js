@@ -442,6 +442,8 @@ solirom.actions.generateNewScanName = (latestScanName) => {
 };
 
 solirom.actions.updateImageViewerURL = (scanName) => {
+    solirom.controls.loadingSpinner.show();	
+
 	const scanURL = solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName) + "?cache=" + Date.now();    
 	
 	const imageElement = document.querySelector("#scan");
@@ -451,6 +453,8 @@ solirom.actions.updateImageViewerURL = (scanName) => {
     
     document.querySelector("#replace-scan").disabled = false;
     document.querySelector("#delete-scan").disabled = false;
+
+    solirom.controls.loadingSpinner.hide(); 	
 };
 
 solirom.actions.checkFileSize = (file) => {

@@ -31,7 +31,7 @@ teian.frameworkDefinition = {
             <style>
                 #content {
 					display: grid;
-             	    grid-template-columns: repeat(3, 1fr);
+             	    grid-template-columns: repeat(4, 1fr);
                 }
               	${soliromUtils.awesomeButtonStyle}                 
             </style>
@@ -44,7 +44,7 @@ teian.frameworkDefinition = {
         <style>
             :host(*) #content {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);                    
+                grid-template-columns: repeat(4, 1fr);                    
             }
             :host(*[*|id]) #content {
                 display: grid;
@@ -63,7 +63,7 @@ teian.frameworkDefinition = {
         <style>
             #content {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
             ${soliromUtils.awesomeButtonStyle}                 
         </style>
@@ -85,10 +85,10 @@ teian.frameworkDefinition = {
                 }             
                 :host(.selected) {
 					background: linear-gradient(to left, #38158f, transparent);
-					width: 150px;
+					width: 120px;
                 }
                 #pb-container {
-                    width: 150px;
+                    width: 120px;
                     padding-left: 3px;
                     margin-bottom: 2px;
                 }
@@ -109,7 +109,6 @@ teian.frameworkDefinition = {
             </style>
             <div id="pb-container">
                 <span class="fa-button drag-handler">&#xf0b2;</span>
-                <button class="fa-button" onclick="teian.actions.displayScan(this);" title="Afișare scan">&#xf15b;</button>
                 <button class="fa-button" onclick="solirom.actions.editTranscription(this);" title="Editare transcriere">&#xf14b;</button>
                 <input id="page-number" data-ref="@n" onfocus="teian.actions.selectPageBreak(this);" />
             </div>
@@ -151,18 +150,19 @@ teian.actions.displayScan = (element) => {
     const scanName = element.hostElement.getAttribute("facs");
     solirom.data.scan.name = scanName;
     
-    solirom.actions.updateImageViewerURL(scanName);
-    teian.actions.selectPageBreak(element);
+    solirom.actions.updateImageViewerURL(scanName);   
 };
 
 solirom.actions.editTranscription = async (element) => {
     teian.actions.displayScan(element);
+    teian.actions.selectPageBreak(element);
     solirom.actions.displayDataEditor();
     const hostElement = element.getRootNode().host;
     document.querySelector("data-editor").editTranscription(hostElement);
 };
 
 teian.actions.selectPageBreak = (element) => {
+    teian.actions.displayScan(element);
     const hostElement = element.hostElement;
     var content = solirom.controls.metadataEditor.shadowRoot.querySelector("#content");
     content.querySelectorAll(":scope *[data-name = 'pb']").forEach((pbElement) => pbElement.classList.remove("selected"));
