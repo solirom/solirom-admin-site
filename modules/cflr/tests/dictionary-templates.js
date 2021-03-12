@@ -649,7 +649,7 @@ teian.frameworkDefinition["t-orth-template"] =
                 width: 50px;
             }
         </style>
-        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
+        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
         <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
         <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
     `
