@@ -37,7 +37,6 @@ solirom.data.templates.lexiconEntry =
     `
 ;       
 solirom.data.entry = {
-	"sha": "",
 	"path": ""
 };
 
@@ -59,7 +58,6 @@ export default class DataEditorComponent extends HTMLElement {
                         height: 990px; 
                     }                
                     #content, option {
-                        font-family: cursive;
                         font-size: 12px;
                     }
                     #master > * {
@@ -147,7 +145,7 @@ export default class DataEditorComponent extends HTMLElement {
             }            
             
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => element.getAttribute("data-value")).filter(Boolean).join(" ");
+                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
                 const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
                 const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
@@ -282,6 +280,7 @@ export default class DataEditorComponent extends HTMLElement {
     async saveTranscription() {
         const username = document.querySelector("kuberam-login-element").username;
         var data = solirom.controls.transcriptionEditor.exportDataAsString();
+        const transcriptionSha = await solirom.actions.getSHA(solirom.data.transcription.path);
 
         var result;
         try {
@@ -289,7 +288,7 @@ export default class DataEditorComponent extends HTMLElement {
                 method: "PUT",
                 path: solirom.data.transcription.path,
                 content: solirom.actions.b64EncodeUnicode(data),
-                "sha": solirom.data.transcription.sha,
+                "sha": transcriptionSha,
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -302,7 +301,6 @@ export default class DataEditorComponent extends HTMLElement {
             alert("Transcrierea nu poate fi salvată.");
             return;
         }    
-        solirom.data.transcription.sha = result.sha;
 
         solirom.controls.transcriptionEditor.setAttribute("status", "edit");
     }    
@@ -344,13 +342,14 @@ export default class DataEditorComponent extends HTMLElement {
 
         // save the entry in dictionary
         const entry = this.entryEditor.exportDataAsString();
+        const entrySha = await solirom.actions.getSHA(solirom.data.entry.path);
 
         var result;
         try {
             result = await solirom.data.repos.cflr.client({
                 method: "PUT",
                 path: solirom.data.entry.path,
-                "sha": solirom.data.entry.sha,                
+                "sha": entrySha,                
                 content: solirom.actions.b64EncodeUnicode(entry),
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
@@ -365,7 +364,6 @@ export default class DataEditorComponent extends HTMLElement {
             return;
         }
     
-        solirom.data.entry.sha = result.sha;
         this.entryEditor.setAttribute("status", "edit");
 
         // save the entry in lexicon
@@ -414,25 +412,17 @@ export default class DataEditorComponent extends HTMLElement {
             lexiconEntryIdElement.dataset.value = lexiconEntryId;
         } else {
             // get the SHA of the lexicon entry
-            var result;
-            try {
-                result = await solirom.data.repos.cflr.client({
-                    method: "GET",
-                    path: lexiconEntryId,
-                    owner: "solirom",
-                    repo: "lexicon",
-                    headers: {
-                        'If-None-Match': ''
-                      }	
-                });
-                result = result.data;		
-            } catch (error) {
-                console.error(error);
-                alert("Intrarea din lexicon nu poate fi încărcată.");
-    
-                return;
-            }
-            const entrySha = result.sha;
+            var lexiconEntrySha = await solirom.data.repos.cflr.client({
+                method: "HEAD",
+                path: lexiconEntryId,
+                owner: "solirom",
+                repo: "lexicon",
+                headers: {
+                    'If-None-Match': ''
+                    }	
+            });
+            lexiconEntrySha = lexiconEntrySha.headers.etag;
+            lexiconEntrySha = lexiconEntrySha.replace("W/", "").replaceAll('"', '').trim();
 
             // save the lexicon entry
             try {
@@ -441,7 +431,7 @@ export default class DataEditorComponent extends HTMLElement {
                     path: lexiconEntryId,
                     owner: "solirom",
                     repo: "lexicon",
-                    sha: entrySha,
+                    sha: lexiconEntrySha,
                     content: solirom.actions.b64EncodeUnicode(lexiconEntryAsString),
                     "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                     "committer": {
@@ -503,6 +493,7 @@ export default class DataEditorComponent extends HTMLElement {
         } catch (error) {
             console.error(error);
             alert("Intrarea nu poate fi creată.");
+            
             return;
         }
 
@@ -544,14 +535,14 @@ export default class DataEditorComponent extends HTMLElement {
         const username = document.querySelector("kuberam-login-element").username;
 
         //get the SHA of the selected entry
-        await solirom.actions._getEntry();
+        const entrySha = await solirom.actions.getSHA(solirom.data.entry.path);
 
         // delete the entry
         try {
             await solirom.data.repos.cflr.client({
                 method: "DELETE",
                 path: solirom.data.entry.path,
-                "sha": solirom.data.entry.sha,
+                "sha": entrySha,
                 "message": (new Date()).toISOString().split('.')[0] + ", " + username,
                 "committer": {
                     "email": username,
@@ -592,8 +583,6 @@ export default class DataEditorComponent extends HTMLElement {
     }
     reset() {
         solirom.controls.transcriptionEditor.reset();
-        solirom.data.transcription.sha = "";
-        solirom.data.entry.sha = "";
     }    
 };
 
@@ -622,14 +611,10 @@ solirom.actions._getEntry = async () =>  {
         return;
     }
 
-    const sha = result.sha;
     const contents = solirom.actions.b64DecodeUnicode(result.content);
-
-    solirom.data.entry.sha = sha;
 
     return {
         "path": path,
-        "sha": sha,
         "contents": contents
     };
 };
@@ -664,7 +649,7 @@ teian.frameworkDefinition["t-orth-template"] =
                 width: 50px;
             }
         </style>
-        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-language-selector>
+        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
         <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
         <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
     `
