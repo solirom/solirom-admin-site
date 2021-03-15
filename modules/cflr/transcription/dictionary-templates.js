@@ -129,7 +129,8 @@ export default class DataEditorComponent extends HTMLElement {
             if (target.matches("#display-metadata-editor-button")) {
                 solirom.actions.displayMetadataEditor();
                 this.transcriptionEditor.reset(); 
-                this.entryEditor.reset();	
+                this.entryEditor.reset();
+                this.entryStatusSelector.value = "unknown";
             }
 
             if (target.matches("#add-entry-button")) {
@@ -559,6 +560,7 @@ export default class DataEditorComponent extends HTMLElement {
 
         //reset the entry editor
         this.entryEditor.reset();
+        this.entryStatusSelector.value = "unknown";
 
         // remove the transcription reference
         this.selectedIncludeElement.remove();
@@ -583,6 +585,8 @@ export default class DataEditorComponent extends HTMLElement {
     }
     reset() {
         solirom.controls.transcriptionEditor.reset();
+        this.entryEditor.reset();
+        this.entryStatusSelector.value = "unknown";
     }    
 };
 
