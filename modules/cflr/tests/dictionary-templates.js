@@ -68,8 +68,8 @@ export default class DataEditorComponent extends HTMLElement {
                         width: 190px
                     }
                     ${soliromUtils.awesomeButtonStyle}   
-                    #delete-entry-button {
-                        background-color: red;
+                    #delete-entry-reference-button {
+                        background-color: green;
                     }                                   
                 </style> 
                 <div id="content">
@@ -77,8 +77,8 @@ export default class DataEditorComponent extends HTMLElement {
                         <div id="master-toolbar">
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
                             <button id="duplicate-entry-button" class="fa-button" title="Duplicare ultima intrare din transcrierea anterioară">&#xf24d;</button>
-                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere referință intrare">&#xf2ed;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
+                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>                            
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
                             <label for="transcription-status-selector">Stare transcriere</label>
@@ -132,6 +132,8 @@ export default class DataEditorComponent extends HTMLElement {
 
             if (target.matches("#display-metadata-editor-button")) {
                 solirom.actions.displayMetadataEditor();
+                this.selectedPbElement.scrollIntoView();
+                document.body.scrollIntoView();       
                 this.transcriptionEditor.reset(); 
                 this.entryEditor.reset();
                 this.entryStatusSelector.value = "unknown";
