@@ -1,3 +1,5 @@
+import * as soliromUtils from "/modules/utils/solirom-utils.js";
+
 export default class LanguageSelectorComponent extends HTMLElement {
     constructor() {
         super();
@@ -5,8 +7,14 @@ export default class LanguageSelectorComponent extends HTMLElement {
         this.attachShadow({mode: 'open'});
         const shadowRoot = this.shadowRoot;
         shadowRoot.innerHTML = `
+            <style>
+                #toolbar, #custom-toolbar {
+                    display: inline;
+                }
+            </style>
             <select id="language-selector" title="Alfabet"></select>
-            <div id="toolbar"></div>             
+            <div id="toolbar"></div> 
+            <div id="custom-toolbar"><slot name="custom-toolbar"></slot></div>                        
         `; 
         this.selector = shadowRoot.querySelector("#language-selector");
         this.toolbar = shadowRoot.querySelector("#toolbar");

@@ -165,6 +165,14 @@ export default class DataEditorComponent extends HTMLElement {
                 await this.saveEntry();
                 await document.querySelector("data-editor").saveTranscription();
             }
+
+            if (target.matches("#uppercase-text-button")) {
+                const miniEditor = target.getRootNode().querySelector("#orth-mini-editor");
+                var miniEditorTextContent = miniEditor.textContent;
+                miniEditorTextContent = miniEditorTextContent.toUpperCase();
+                miniEditor.textContent = miniEditorTextContent;
+                miniEditor.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+            }
         }, false);
 
         shadowRoot.addEventListener("dblclick", (event) => {
@@ -688,9 +696,12 @@ teian.frameworkDefinition["t-orth-template"] =
             }
             #homonym-number-input {
                 width: 50px;
-            }
+            } 
+            ${soliromUtils.awesomeButtonStyle}
         </style>
-        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
+        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs">
+            <button id="uppercase-text-button" class="fa-button" slot="custom-toolbar" title="Transformare litere în majuscule">&#xf062;</button>
+        </solirom-language-selector>
         <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
         <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
     `
@@ -739,9 +750,8 @@ teian.frameworkDefinition["t-include-template"] =
             }                        
             .drag-handler {
                 width: 29px;
-                border-radius: 5px 0 0 5px;
+                height: 25px;
                 background: #807e7e url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MiIgaGVpZ2h0PSI0MiI+PGcgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjIuOSIgPjxwYXRoIGQ9Ik0xNCAxNS43aDE0LjQiLz48cGF0aCBkPSJNMTQgMjEuNGgxNC40Ii8+PHBhdGggZD0iTTE0IDI3LjFoMTQuNCIvPjwvZz4KPC9zdmc+') no-repeat center;
-                box-shadow: 0 2px 2px -2px;
                 cursor: move;
             }  
             .transcription-detail {
