@@ -26,7 +26,7 @@ solirom.data.templates.entryFile =
     </body>`
 ;
 solirom.data.templates.entryReference =
-    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="unknown" class="list-group-item" draggable="true"></t-include>`
+    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="${props => props.cert}" class="list-group-item" draggable="true"></t-include>`
 ;
 solirom.data.templates.editor =
     solirom.actions.html`<t-editor data-name="editor" data-ns="http://www.tei-c.org/ns/1.0" data-value="${props => props.username}" slot="t-editor" role="${props => props.userRole}"></t-editor>`
@@ -488,7 +488,7 @@ export default class DataEditorComponent extends HTMLElement {
         const transcriptionEditor = solirom.controls.transcriptionEditor.shadowRoot;
         const newEntry = solirom.data.templates.entryFile({"id": entryId, "author": document.querySelector("kuberam-login-element").username});
         const newEntryPath = "entries/" + entryId + ".xml";
-        const newEntryReference = solirom.data.templates.entryReference({"entryPath": newEntryPath});
+        const newEntryReference = solirom.data.templates.entryReference({"entryPath": newEntryPath, "cert": "unknown"});
 
         const currentEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
         if (currentEntryReferenceElement === null) {
@@ -534,7 +534,7 @@ export default class DataEditorComponent extends HTMLElement {
             const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionPath);
             const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
             const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
-            const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label")});
+            const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label"), "cert": lastEntryReference.getAttribute("cert")});
             solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
 
             // save the transcription
