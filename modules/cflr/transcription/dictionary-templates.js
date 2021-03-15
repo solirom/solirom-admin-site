@@ -67,13 +67,17 @@ export default class DataEditorComponent extends HTMLElement {
                         padding: 5px;
                         width: 190px
                     }
-                    ${soliromUtils.awesomeButtonStyle}                                      
+                    ${soliromUtils.awesomeButtonStyle}   
+                    #delete-entry-button {
+                        background-color: red;
+                    }                                   
                 </style> 
                 <div id="content">
                     <div id="master">
                         <div id="master-toolbar">
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
                             <button id="duplicate-entry-button" class="fa-button" title="Duplicare ultima intrare din transcrierea anterioară">&#xf24d;</button>
+                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere referință intrare">&#xf2ed;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
@@ -143,7 +147,11 @@ export default class DataEditorComponent extends HTMLElement {
             
             if (target.matches("#delete-entry-button")) {
                 await this.deleteEntry();
-            }            
+            } 
+            
+            if (target.matches("#delete-entry-reference-button")) {
+                await this.deleteEntryReference();
+            }
             
             if (target.matches("#save-entry-button")) {
                 const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
@@ -576,6 +584,35 @@ export default class DataEditorComponent extends HTMLElement {
 
         window.solirom.controls.loadingSpinner.hide();
     }
+
+    /**
+     * Deletes the selected entry reference || TODO: this function will be removed when
+     * the data will have the new structure
+     * @public
+     * @return void
+     */    
+     async deleteEntryReference() {
+        window.solirom.controls.loadingSpinner.show();
+
+        //reset the entry editor
+        this.entryEditor.reset();
+        this.entryStatusSelector.value = "unknown";
+
+        // remove the transcription reference
+        this.selectedIncludeElement.remove();
+
+        // save the transcription
+        try {
+            await document.querySelector("data-editor").saveTranscription();
+        } catch (error) {
+            console.error(error);
+            alert("Transcrierea nu poate fi salvată.");
+
+            return;
+        }        
+
+        window.solirom.controls.loadingSpinner.hide();
+    }    
 
     toggleEntryReference(currentEntryReference) {
         [...currentEntryReference.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
