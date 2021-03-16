@@ -744,6 +744,8 @@ teian.frameworkDefinition["t-include-template"] =
                 display: inline-block;
                 width: 100%;
                 height: 25px; 
+                overflow: hidden;
+                white-space: nowrap;                
             }  
             .transcription-reference > div {
                 display: inline-block;
@@ -757,8 +759,12 @@ teian.frameworkDefinition["t-include-template"] =
                 cursor: move;
             }  
             .transcription-detail {
+                width: 160px;
                 box-sizing: border-box;
                 padding: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }  
             :host(*[cert='validated']) .transcription-reference {
                 border-left: 7px solid #f58d42;
