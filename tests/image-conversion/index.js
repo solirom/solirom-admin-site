@@ -39,7 +39,14 @@ document.addEventListener("click", async (event) => {
         const imgFileSize = Math.round((imageAsDataURL.length - head.length) * 3 / 4) ;
         document.querySelector("#target-image-size").textContent = `Mărime imagine ${formatSize(imgFileSize)} MB`;
         image.src = imageAsDataURL;
-    }    
+    }  
+    
+    if (target.matches("#save-converted-image")) {
+        const sourceCanvas = document.querySelector("#source-image-canvas");
+        const convertedImageAsDataURL = sourceCanvas.toDataURL("image/webp", 0.1);
+
+        console.log(convertedImageAsDataURL);
+    }
 }, false);
 
 document.addEventListener("change", async (event) => {

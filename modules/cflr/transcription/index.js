@@ -306,7 +306,7 @@ document.addEventListener("change", async (event) => {
 		const currentScanName = solirom.data.scan.name;
 		
 		try {
-			await fetch(solirom.data.repos.lowResScan.basePath + currentScanName, {
+			await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(currentScanName), {
 				method: "PUT",
 				body: formData
 			});
@@ -486,7 +486,7 @@ solirom.actions.addScan = async (file) => {
 	solirom.data.scan.name = solirom.actions.generateNewScanName(newScanName);
 	
 	try {
-		await fetch(solirom.data.repos.lowResScan.basePath + newScanName, {
+		await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(newScanName), {
 			method: "POST",
 			body: formData
 		});
@@ -542,7 +542,7 @@ solirom.actions.deleteScan = async () => {
 		
 		try {
 			solirom.controls.loadingSpinner.show();				
-			await fetch(solirom.data.repos.lowResScan.basePath + scanName, {
+			await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName), {
 				method: "DELETE"
 			});	
 		} catch (error) {
