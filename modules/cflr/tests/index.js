@@ -741,7 +741,7 @@ solirom.actions.convertImageFileToWebP = async (file) => {
 	  const head = "data:image/webp;base64,";
 	  var imgFileSize = Math.round((imageAsDataURL.length - head.length) * 3 / 4) ;	  
 	  imgFileSize = (imgFileSize / (1024*1024)).toFixed(3);
-	  console.log(`Mărime imagine ${imgFileSize} MB`);
+	  console.log(`Mărime imagine ${file.name} ${imgFileSize} MB`);
 
 	  return imageAsDataURL;
 };
