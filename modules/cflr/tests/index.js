@@ -441,26 +441,30 @@ solirom.actions.generateNewScanName = (latestScanName) => {
 
 solirom.actions.updateImageViewerURL = async (scanName) => {
     solirom.controls.loadingSpinner.show();	
+	const scanURL = solirom.actions.composePath([solirom.data.work.volumeNumber, scanName], "/");
 
-	const scanURL = solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName) + "?cache=" + Date.now();
-	var imageAsDataURL = "";
+	var result;
 	try {
-		imageAsDataURL = await fetch(scanURL).then((response) => response.text());
+		result = await solirom.data.repos.cflr.client({
+			method: "GET",
+			path: scanURL,
+			headers: {
+				'If-None-Match': ''
+			  }	
+		});
+		result = result.data;		
 	} catch (error) {
 		console.error(error);
-		alert("Eroare la încărcarea scanului.");
+		alert("Lucrarea nu poate fi încărcată.");
 
 		return;
-	}	
+	}
+	const scanAsDataURL = solirom.actions.b64DecodeUnicode(result.content);
 
-	const canvas = document.querySelector("#scan");
-	const canvasCtx = canvas.getContext('2d');
-
-	var image = new Image();
-	image.onload = () => {
-		canvasCtx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 500, 900);
-	};
-	image.src = imageAsDataURL;	
+	const imageElement = document.querySelector("#scan");
+	const imageParentElement = imageElement.parentElement;
+	imageElement.remove();
+	imageParentElement.insertAdjacentHTML("beforeend", solirom.data.templates.img({"src": scanAsDataURL}));
     
     document.querySelector("#replace-scan").disabled = false;
     document.querySelector("#delete-scan").disabled = false;
@@ -490,33 +494,40 @@ solirom.actions.addScan = async (file) => {
 
 		return;    
 	}
-	const imageAsDataURL = await solirom.actions.convertImageFileToWebP(file);
+	const username = document.querySelector("kuberam-login-element").username;
 
-	var newScanName = solirom.data.scan.name;
+	const scanAsDataURL = await solirom.actions.convertImageFileToWebP(file);
+
+	var newScanName = "scans/" + solirom.data.scan.name;
 	solirom.data.scan.name = solirom.actions.generateNewScanName(newScanName);
-	
+	const scanURL = solirom.actions.composePath([solirom.data.work.volumeNumber, newScanName], "/");
+	console.log(scanURL);
 	try {
-		await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(newScanName), {
-			method: "POST",
-			body: imageAsDataURL
+		await solirom.data.repos.cflr.client({
+			"method": "PUT",
+			"path": scanURL,
+			"content": solirom.actions.b64EncodeUnicode(scanAsDataURL),
+			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
+			"committer": {
+				"email": username,
+				"name": username
+			},
 		});
 	} catch (error) {
 		console.error(error);
 		alert("Eroare la salvarea scanului.");
 
 		return;
-	}
+	}	
 
 	const newTranscriptionName = "t" + newScanName.match(/\d+/)[0] + ".xml";
 	const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
+	console.log(newTranscriptionPath);
 	const textSection = solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
 	textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
 	
-	const username = document.querySelector("kuberam-login-element").username;
-
-	var result;
 	try {
-		result = await solirom.data.repos.cflr.client({
+		await solirom.data.repos.cflr.client({
 			"method": "PUT",
 			"path": newTranscriptionPath,
 			"content": solirom.actions.b64EncodeUnicode(solirom.data.templates.transcriptionFile),
@@ -526,7 +537,6 @@ solirom.actions.addScan = async (file) => {
 				"name": username
 			},
 		});
-		result = result.data.content;
 	} catch (error) {
 		console.error(error);
 		alert("Eroare la salvarea transcrierii.");
