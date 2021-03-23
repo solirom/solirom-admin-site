@@ -35,7 +35,7 @@ teian.frameworkDefinition = {
                 }
               	${soliromUtils.awesomeButtonStyle}                 
             </style>
-            	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>            
+            	<button class="fa-button" onclick="teian.actions.sortPageNumbers(this);" title="Sortare numere de pagină">&#xf162;</button>
             <div id="content">
             	<slot name="t-pb"></slot>
 			</div>

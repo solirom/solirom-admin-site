@@ -78,7 +78,8 @@ export default class DataEditorComponent extends HTMLElement {
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
                             <button id="duplicate-entry-button" class="fa-button" title="Duplicare ultima intrare din transcrierea anterioară">&#xf24d;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
-                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>                            
+                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>
+                            <button id="sort-entries-button" class="fa-button" title="Sortare intrări">&#xf162;</button>
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
                             <label for="transcription-status-selector">Stare transcriere</label>
@@ -154,7 +155,11 @@ export default class DataEditorComponent extends HTMLElement {
             if (target.matches("#delete-entry-reference-button")) {
                 await this.deleteEntryReference();
             }
-            
+
+            if (target.matches("#sort-entries-button")) {
+                this.sortEntries(target);
+            }
+
             if (target.matches("#save-entry-button")) {
                 const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
@@ -622,7 +627,47 @@ export default class DataEditorComponent extends HTMLElement {
         }        
 
         window.solirom.controls.loadingSpinner.hide();
-    }    
+    } 
+
+    /**
+     * Sort the entries' references in a transcription
+     * @public
+     * @return void
+     */        
+    async sortEntries(element) {
+        window.solirom.controls.loadingSpinner.show();
+
+        const transcriptionEditor = this.transcriptionEditor;
+        const entryReferencesContainer = transcriptionEditor.getContents().querySelector("*[data-name = 'ab']");
+        const sortedEntryReferences = [...transcriptionEditor.getContents().querySelectorAll("*[data-name = 'xi:include']")].sort((a, b) => {
+            const aLabel = a.getAttribute("label");
+            const bLabel = b.getAttribute("label");
+
+            if (aLabel < bLabel) {
+                return -1;
+            }
+            if (aLabel > bLabel) {
+                return 1;
+            }            
+
+            return 0;            
+        });
+
+        sortedEntryReferences.forEach((item) => {
+            entryReferencesContainer.appendChild(item);
+        }); 
+
+        // save the transcription
+        try {
+            await document.querySelector("data-editor").saveTranscription();
+        } catch (error) {
+            console.error(error);
+            alert("Transcrierea nu poate fi salvată.");
+            return;
+        }        
+
+        window.solirom.controls.loadingSpinner.hide();
+    }
 
     toggleEntryReference(currentEntryReference) {
         [...currentEntryReference.parentNode.querySelectorAll("*[data-name = 'xi:include']")].forEach(
@@ -630,6 +675,7 @@ export default class DataEditorComponent extends HTMLElement {
         );
         currentEntryReference.classList.add("selected-entry-reference");        
     }
+    
     reset() {
         solirom.controls.transcriptionEditor.reset();
         this.entryEditor.reset();
