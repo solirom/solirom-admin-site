@@ -147,29 +147,42 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 	try {
 		result = await solirom.data.repos.cflr.client({
 			method: "GET",
-			path: "index.xml",
+			path: "",
 			headers: {
 				'If-None-Match': ''
 			  }	
 		});
-		result = result.data;		
 	} catch (error) {
 		console.error(error);
 		alert("Lucrarea nu poate fi încărcată.");
 
 		return;
-	}
+	}	
+	var volumeNumbers = result.data.filter((item) => {return item.name.match(/\d+/g)}).map((item) => item.name);	
 
-	const contents = solirom.actions.b64DecodeUnicode(result.content);
 	solirom.data.work.volumeNumber = "";
 	solirom.controls.metadataEditor.reset();
 	solirom.actions.resetScanViewer();
+
+	if (volumeNumbers.length === 0) {
+		try {
+			result = await solirom.data.repos.cflr.client({
+				method: "GET",
+				path: "index.xml",
+				headers: {
+					'If-None-Match': ''
+				  }	
+			});
+			result = result.data;		
+		} catch (error) {
+			console.error(error);
+			alert("Lucrarea nu poate fi încărcată.");
 	
-	const indexDocument = (new DOMParser()).parseFromString(contents, "application/xml").documentElement;
-	const workType = indexDocument.getAttribute("type");
-	
-	switch (workType) {
-		case "uni-volume":
+			return;
+		}
+		
+		const contents = solirom.actions.b64DecodeUnicode(result.content);
+
 		solirom.controls.metadataEditor.setAttribute("status", "edit");
 		solirom.controls.metadataEditor.setAttribute("src", "data:application/xml;" + contents);
 		document.querySelector("#add-scan").disabled = false;
@@ -188,16 +201,13 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 				animation: 350
 			});					
 		}));
-		break;
-		case "multi-volume":
+	} else {
 		document.querySelector("#text-tools").style.display = "inline";
 
 		const volumeSelector = document.querySelector("#volume-selector");
-		var volumeNumbers = [...indexDocument.querySelectorAll("TEI > *|include")].map(
-			item => {
-				const volumeNumber = item.getAttribute("href").match(/\d+/g)[0];
-
-				return solirom.data.templates.volumeSelectorOption({"label": volumeNumber, "value": volumeNumber});
+		volumeNumbers = volumeNumbers.map(
+			(item) => {
+				return solirom.data.templates.volumeSelectorOption({"label": item, "value": item});
 		}).filter(Boolean).join("");
 		volumeNumbers = solirom.data.templates.volumeSelectorOption({"label": "", "value": ""}) + volumeNumbers;
 
@@ -205,9 +215,8 @@ document.addEventListener("awesomplete-selectcomplete", async (event) => {
 		document.querySelector("label[for = 'volume-selector']").style.display = "inline";
 		
 		volumeSelector.innerHTML = volumeNumbers;
-		break;
 	}
-	
+
 	setTimeout(() => document.querySelector("#save-button").disabled = true, 100);
 }, false);
 
