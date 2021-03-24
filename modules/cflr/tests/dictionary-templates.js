@@ -110,7 +110,7 @@ export default class DataEditorComponent extends HTMLElement {
 
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
-        solirom.controls.transcriptionEditor.shadowRoot.querySelector("#content").style.padding = "5px";
+        solirom.controls.transcriptionEditor.getContents().style.padding = "5px";
         this.entryStatusSelector = shadowRoot.querySelector("#entry-status-selector");
         this.selectedIncludeElement = null;
 

@@ -290,7 +290,7 @@ solirom.actions.deleteFile = function() {
 };
 
 solirom.actions.addVolume = () => {
-	var content = document.querySelector("teian-editor").shadowRoot.querySelector("#content");
+	var content = document.querySelector("teian-editor").getContents();
 	const referenceNode = content.querySelector(":scope > *[data-name = 'mods'] > *[data-name = 'relatedItem'][type = 'constituent']:last-of-type") || content.querySelector(":scope  > *[data-name = 'mods'] > *[data-name = 'genre']");
 	teian.update.insertAfter((new DOMParser()).parseFromString(teian.dataInstances.volumeProcessedTemplate, 'application/xml').documentElement.cloneNode(true), referenceNode);
 	document.querySelector("#volume-button").disabled = true;

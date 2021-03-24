@@ -215,7 +215,7 @@ teian.utils.loadData = function(data, customElement) {
     customElement.setAttribute("slot", rootElementLocalName + "-" + rootElementLocalName);
     
     const transformedContent = teian.transformContent(content).documentElement.cloneNode(true);
-    customElement.shadowRoot.querySelector("#content").appendChild(transformedContent);
+    customElement.getContents().appendChild(transformedContent);
     
     //import the framework based upon document type
     //import(`${modulePath}`)
