@@ -23,7 +23,7 @@ document.addEventListener("fileDelete", event => {
     document.querySelector("#save-button").disabled = true;
     document.querySelector("#delete-button").disabled = true;  
     solirom.data.selectedItemId = null;
-    teian.editor.setAttribute("src", "");    
+    document.querySelector("teian-editor").setAttribute("src", "");    
     document.querySelector("#search-button").click();
 }, false);
 
@@ -41,7 +41,7 @@ document.addEventListener('kuberam.loginElement.events.login', event => {
 document.addEventListener('kuberam.loginElement.events.logout', event => {
     document.querySelector("#search-result").innerHTML = "";
     document.querySelector("#entries-counter").value = 0;
-    teian.editor.setAttribute("src", "");
+    document.querySelector("teian-editor").setAttribute("src", "");
 });
 
 document.addEventListener("teian-file-opened", event => {
@@ -136,8 +136,8 @@ document.addEventListener("click", event => {
             })
             .then((response) => response.text())
             .then((data) => {
-                teian.editor.setAttribute("status", "edit");
-                teian.editor.setAttribute("src", "data:application/xml;" + data);
+                document.querySelector("teian-editor").setAttribute("status", "edit");
+                document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + data);
                 teian.actions.initializeAllCollapsedTitleInfo();
                 teian.actions.initializeSortableVolumes();
                 setTimeout(() => document.querySelector("#save-button").disabled = true, 1);
@@ -203,15 +203,15 @@ solirom.actions.newFile = function() {
 		.then((data) => {
             solirom.data.uuid = data;
             solirom.data.url = "/api/data/" + solirom.data.filePath + solirom.data.uuid + ".xml";
-            teian.editor.setAttribute("status", "new");
-            teian.editor.setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": data, "username": document.querySelector("kuberam-login-element").username}));
+            document.querySelector("teian-editor").setAttribute("status", "new");
+            document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": data, "username": document.querySelector("kuberam-login-element").username}));
 		})
 		.catch(error => console.error('Error:', error));
 };
 
 solirom.actions.saveFile = function() {
     const data = teian.utils.unloadData();
-    const editorStatus = teian.editor.getAttribute("status");
+    const editorStatus = document.querySelector("teian-editor").getAttribute("status");
     const outputData = teian.dataInstances.outputData;
     const documentId = outputData.querySelector(":scope").getAttribute("ID");
     var method = "";
@@ -238,7 +238,7 @@ solirom.actions.saveFile = function() {
         }
     }).then(response => {
         if (response.status == 200) {
-            teian.editor.setAttribute("status", "edit");
+            document.querySelector("teian-editor").setAttribute("status", "edit");
             // index the document
 	        fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
 	            method: "PUT",
@@ -290,7 +290,7 @@ solirom.actions.deleteFile = function() {
 };
 
 solirom.actions.addVolume = () => {
-	var content = teian.editor.shadowRoot.querySelector("#content");
+	var content = document.querySelector("teian-editor").shadowRoot.querySelector("#content");
 	const referenceNode = content.querySelector(":scope > *[data-name = 'mods'] > *[data-name = 'relatedItem'][type = 'constituent']:last-of-type") || content.querySelector(":scope  > *[data-name = 'mods'] > *[data-name = 'genre']");
 	teian.update.insertAfter((new DOMParser()).parseFromString(teian.dataInstances.volumeProcessedTemplate, 'application/xml').documentElement.cloneNode(true), referenceNode);
 	document.querySelector("#volume-button").disabled = true;

@@ -5,7 +5,6 @@ window.teian = {};
 teian.documentTypes = {
     "{http://www.loc.gov/mods/v3}mods": "./teian-mods.js"    
 };
-teian.editor = document.querySelector("teian-editor");
 teian.file = {};
 teian.update = {};
 teian.dataInstances = {};
@@ -226,7 +225,7 @@ teian.utils.loadData = function(data, customElement) {
 };
 
 teian.utils.unloadData = function() {
-    var content = teian.editor.shadowRoot.querySelector("#content > *");
+    var content = document.querySelector("teian-editor").shadowRoot.querySelector("#content > *");
     content = (new XMLSerializer()).serializeToString(content);
     content = content.replace('&nbsp;', '&#160;');
     content = content.replace("ş", "ș");

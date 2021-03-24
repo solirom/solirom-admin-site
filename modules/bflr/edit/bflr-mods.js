@@ -1304,7 +1304,7 @@ teian.actions.expandCollapseVolumeContent = button => {
 };
 
 teian.actions.initializeAllCollapsedTitleInfo = () => {
-	var content = teian.editor.shadowRoot.querySelector("#content");
+	var content = document.querySelector("teian-editor").shadowRoot.querySelector("#content");
 	content.querySelectorAll(":scope > * > *[data-name = 'relatedItem'][type = 'constituent']").forEach((volumeElement) => teian.actions.initializeCollapsedTitleInfo(volumeElement));	
 };
 
@@ -1314,7 +1314,7 @@ teian.actions.initializeCollapsedTitleInfo = (volumeElement) => {
 };
 
 teian.actions.initializeSortableVolumes = () => {
-	var content = teian.editor.shadowRoot.querySelector("#content");
+	var content = document.querySelector("teian-editor").shadowRoot.querySelector("#content");
 	var root = content.querySelector("*[data-name = 'mods']");
 	root.setAttribute("class", "list-group");
 	content.querySelectorAll(":scope > * > *[data-name = 'relatedItem'][type = 'constituent']").forEach((volumeElement) => volumeElement.setAttribute("class", "list-group-item"));

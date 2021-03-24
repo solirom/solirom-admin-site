@@ -52,9 +52,9 @@ document.addEventListener("click", event => {
            fetch(solirom.dataInstances.url)
            .then((response) => response.text())
            .then((data) => {
-              	teian.editor.setAttribute("status", "edit");
-               	teian.editor.setAttribute("src", "data:application/xml;" + data);
-				teian.editor.shadowRoot.querySelectorAll("#content t-gramgrp").forEach(element => {
+                document.querySelector("teian-editor").setAttribute("status", "edit");
+                document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + data);
+				document.querySelector("teian-editor").shadowRoot.querySelectorAll("#content t-gramgrp").forEach(element => {
 				  const value = Array.from(element.childNodes).map(node => {
 				  	const nodeType = node.nodeType;
 				   
@@ -121,9 +121,9 @@ document.querySelector("#search-button").addEventListener("click", function() {
 solirom.file.new = function() {
     const uuid = solirom.actions.generate_uuid();
     solirom.dataInstances.uuid = uuid;
-    teian.editor.setAttribute("status", "new");
-    teian.editor.setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": uuid, "username": document.querySelector("kuberam-login-element").username}));
-    teian.editor.setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + uuid);    
+    document.querySelector("teian-editor").setAttribute("status", "new");
+    document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": uuid, "username": document.querySelector("kuberam-login-element").username}));
+    document.querySelector("teian-editor").setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + uuid);    
 }
 
 solirom.file.save = function() {

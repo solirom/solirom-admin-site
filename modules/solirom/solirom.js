@@ -69,8 +69,8 @@ solirom.gitea = {
 		    solirom.gitea.sha = data.sha;
 		    var content = data.content;
 		    content = solirom.actions.b64DecodeUnicode(content);
-		    teian.editor.setAttribute("status", "edit");
-		    teian.editor.setAttribute("src", "data:application/xml;" + content);
+		    document.querySelector("teian-editor").setAttribute("status", "edit");
+		    document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + content);
 		})
 		.catch((error) => {
 		    console.error('Error:', error);

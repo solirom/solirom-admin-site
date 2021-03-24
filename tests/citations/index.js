@@ -68,8 +68,8 @@ document.querySelector("#search-button").addEventListener("click", function() {
                         if (!document.querySelector("#save-button").disabled) {
                             alert("Salvați intrarea curentă înainte de a edita alta!");
                         } else {
-                            teian.editor.setAttribute("status", "edit");
-                            teian.editor.setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + entryDiv.getAttribute("id"));        
+                            document.querySelector("teian-editor").setAttribute("status", "edit");
+                            document.querySelector("teian-editor").setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + entryDiv.getAttribute("id"));        
                         }
                     });
                     
@@ -102,9 +102,9 @@ solirom.file.new = function() {
     teian.submission({"url": uuidUrl})
         .then((data) => {
             solirom.dataInstances.uuid = data;
-            teian.editor.setAttribute("status", "new");
-            teian.editor.setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": data, "username": document.querySelector("kuberam-login-element").username}));
-            teian.editor.setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + data);
+            document.querySelector("teian-editor").setAttribute("status", "new");
+            document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": data, "username": document.querySelector("kuberam-login-element").username}));
+            document.querySelector("teian-editor").setAttribute("src", "/exist/apps/dlr-api/api/citations?uuid=" + data);
         })
         .catch(error => {
             console.log(error);
@@ -116,7 +116,7 @@ solirom.file.save = function() {
     console.log(load);
     
     //teian.submission({
-    //    "url": teian.editor.getAttribute("src"),
+    //    "url": document.querySelector("teian-editor").getAttribute("src"),
     //    "method": "POST"
     //})
     //    .then((data) => {
@@ -127,7 +127,7 @@ solirom.file.save = function() {
     //});    
     
     var request = new XMLHttpRequest();
-    request.open('POST', teian.editor.getAttribute("src"), true);
+    request.open('POST', document.querySelector("teian-editor").getAttribute("src"), true);
     request.setRequestHeader('Content-Type', 'text/plain; charset=UTF-8');
     
     request.onreadystatechange = function() {

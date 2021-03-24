@@ -68,7 +68,7 @@ export default class SortableListComponent extends HTMLElement {
                         }
                     };
                     
-                    const hostDocument = teian.editor.shadowRoot.querySelector("#content > *");
+                    const hostDocument = document.querySelector("teian-editor").shadowRoot.querySelector("#content > *");
                     const draggedElement = event.item;
                     const draggedSense = hostDocument.querySelector("*[*|id = '" + draggedElement.dataset.id + "']");
                     const draggedElementNewSenseParent = hostDocument.querySelector("*[*|id = '" + draggedElement.parentNode.dataset.id + "']");

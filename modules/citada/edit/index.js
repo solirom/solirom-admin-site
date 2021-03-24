@@ -6,7 +6,6 @@ solirom.data.uuid = "";
 solirom.data.selectedItemId = null;
 solirom.data.selectedItemSiblingId = null;
 
-solirom.gitea.accessToken = "a6ddbb24ea29bee69670815cd4aca6b6703940cc";
 solirom.gitea.apiBaseUrl = "/gitea/api/v1/repos/solirom/citation-corpus-data/contents/files/xml/";
     
 solirom.events.fileSave = new CustomEvent("fileSave");
@@ -21,7 +20,7 @@ document.addEventListener("fileDelete", event => {
     document.querySelector("#save-button").disabled = true;
     document.querySelector("#delete-button").disabled = true;  
     solirom.data.selectedItemId = null;
-    teian.editor.setAttribute("src", "");    
+    document.querySelector("teian-editor").setAttribute("src", "");    
     document.querySelector("#search-button").click();
 }, false);
 document.addEventListener("teian-file-edited", event => {
@@ -37,7 +36,7 @@ document.addEventListener('kuberam.loginElement.events.login', event => {
 document.addEventListener('kuberam.loginElement.events.logout', event => {
     document.querySelector("#search-result").innerHTML = "";
     document.querySelector("#entries-counter").value = 0;
-    teian.editor.setAttribute("src", "");
+    document.querySelector("teian-editor").setAttribute("src", "");
 });
 document.addEventListener("teian-file-opened", event => {
     document.querySelector("#delete-button").disabled = false;
@@ -148,8 +147,8 @@ document.addEventListener("click", event => {
 solirom.file.new = function() {
     const uuid = solirom.actions.generate_uuid();
     solirom.data.selectedItemId = solirom.data.uuid = uuid;
-    teian.editor.setAttribute("status", "new");
-    teian.editor.setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": uuid, "username": document.querySelector("kuberam-login-element").username})); 
+    document.querySelector("teian-editor").setAttribute("status", "new");
+    document.querySelector("teian-editor").setAttribute("src", "data:application/xml;" + teian.frameworkDefinition["new-file-template"]({"uuid": uuid, "username": document.querySelector("kuberam-login-element").username})); 
 }
 
 solirom.file.save = function() {
