@@ -44,7 +44,8 @@ teian.frameworkDefinition = {
         <style>
             :host(*) #content {
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);                    
+                grid-template-columns: repeat(4, 1fr); 
+                margin-bottom: 970px;                   
             }
             :host(*[*|id]) #content {
                 display: grid;
