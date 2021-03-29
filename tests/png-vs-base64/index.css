@@ -2,3 +2,8 @@ div {
 	width: 45%; 
     display: inline-block;
 }
+
+img {
+    width: 450px;
+    height: 1000px;
+}

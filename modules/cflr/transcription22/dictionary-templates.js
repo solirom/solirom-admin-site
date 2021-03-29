@@ -817,11 +817,7 @@ teian.frameworkDefinition["t-include-template"] =
             } 
             :host(*[cert='reviewed']) .transcription-reference {
                 border-left: 7px solid #5c9106;
-            }  
-            
-            :host(:last-of-type) {
-                margin-bottom: 900px;
-            }
+            }            
         </style>
         <div class="transcription-reference">
             <div class="drag-handler"></div><div class="transcription-detail" data-ref="@label"></div>
