@@ -309,21 +309,31 @@ document.addEventListener("change", async (event) => {
             return;
         }       
 		
+		const username = document.querySelector("kuberam-login-element").username;		
 		const imageAsDataURL = await solirom.actions.convertImageFileToWebP(file);
 		const currentScanName = solirom.data.scan.name;
-		
+		const scanURL = solirom.actions.composePath([solirom.data.work.volumeNumber, currentScanName], "/");
+		const sha = await solirom.actions.getSHA(scanURL);
+
 		try {
-			await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(currentScanName), {
-				method: "PUT",
-				body: imageAsDataURL
+			await solirom.data.repos.cflr.client({
+				"method": "PUT",
+				"path": scanURL,
+				"content": solirom.actions.b64EncodeUnicode(imageAsDataURL),
+				"sha": sha,
+				"message": (new Date()).toISOString().split('.')[0] + ", " + username,
+				"committer": {
+					"email": username,
+					"name": username
+				},
 			});
-	
+
 			solirom.actions.updateImageViewerURL(currentScanName);	
-			solirom.controls.loadingSpinner.hide();	
+			solirom.controls.loadingSpinner.hide();				
 		} catch (error) {
 			console.error(error);
 			alert("Eroare la înlocuirea scanului.");
-
+	
 			return;
 		}		
 	}
@@ -394,9 +404,9 @@ solirom.actions.saveMetadata = async () => {
 	var result;
 	try {
 		result = await solirom.data.repos.cflr.client({
-			method: "PUT",
-			path: indexFilePath,
-			content: solirom.actions.b64EncodeUnicode(data),
+			"method": "PUT",
+			"path": indexFilePath,
+			"content": solirom.actions.b64EncodeUnicode(data),
 			"sha": sha,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
@@ -510,7 +520,7 @@ solirom.actions.addScan = async (file) => {
 	var newScanName = "scans/" + solirom.data.scan.name;
 	solirom.data.scan.name = solirom.actions.generateNewScanName(newScanName);
 	const scanURL = solirom.actions.composePath([solirom.data.work.volumeNumber, newScanName], "/");
-	console.log(scanURL);
+
 	try {
 		await solirom.data.repos.cflr.client({
 			"method": "PUT",
@@ -531,7 +541,7 @@ solirom.actions.addScan = async (file) => {
 
 	const newTranscriptionName = "t" + newScanName.match(/\d+/)[0] + ".xml";
 	const newTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, newTranscriptionName], "/");
-	console.log(newTranscriptionPath);
+
 	const textSection = solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
 	textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
 	
@@ -558,28 +568,36 @@ solirom.actions.addScan = async (file) => {
 
 solirom.actions.deleteScan = async () => {
 	var confirmMsg = confirm("Ștergeți scanul? Se va șterge și transcrierea scanului.");
+
 	if (confirmMsg) {
-		var scanName = solirom.data.scan.name;
 		const username = document.querySelector("kuberam-login-element").username;
+		const scanName = solirom.data.scan.name;
+		const scanURL = solirom.actions.composePath([solirom.data.work.volumeNumber, scanName], "/");
+		const scanSha = await solirom.actions.getSHA(scanURL);
 
-		solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();
-		const transcriptionName = "t" + scanName.match(/\d+/)[0] + ".xml";
+		solirom.controls.loadingSpinner.show();			
 
-		solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
-		
 		try {
-			solirom.controls.loadingSpinner.show();				
-			await fetch(solirom.data.repos.lowResScan.basePath + encodeURIComponent(scanName), {
-				method: "DELETE"
-			});	
+			await solirom.data.repos.cflr.client({
+				"method": "DELETE",
+				"path": scanURL,
+				"sha": scanSha,
+				"message": (new Date()).toISOString().split('.')[0] + ", " + username,
+				"committer": {
+					"email": username,
+					"name": username
+				},
+			});
 		} catch (error) {
 			console.error(error);
 			alert("Eroare la ștergerea scanului.");
-
+	
 			return;
 		}
-		document.querySelector("#scan").src = "";		
-
+		document.querySelector("#scan").src = "";	
+		
+		const transcriptionName = "t" + scanName.match(/\d+/)[0] + ".xml";
+		solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
 		try {
 			await solirom.actions.deleteTranscription();
 		} catch (error) {
@@ -597,6 +615,8 @@ solirom.actions.deleteScan = async () => {
 			
 			return;
 		}
+
+		solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();		
 		solirom.controls.loadingSpinner.hide();		
 	}
 };
@@ -754,13 +774,14 @@ solirom.actions.convertImageFileToWebP = async (file) => {
 		  canvas.height = rawImage.height;
 		  ctx.drawImage(rawImage, 0, 0);
 	
-		  resolve(canvas.toDataURL("image/webp", 0.1));
+		  resolve(canvas.toDataURL("image/webp", 1));
 		});
 	  });
-	  const head = "data:image/webp;base64,";
-	  var imgFileSize = Math.round((imageAsDataURL.length - head.length) * 3 / 4) ;	  
-	  imgFileSize = (imgFileSize / (1024*1024)).toFixed(3);
-	  console.log(`Mărime imagine ${file.name} ${imgFileSize} MB`);
+
+	  var convertedImgSize = Math.round(imageAsDataURL.length * 3 / 4) ;	  
+	  convertedImgSize = (convertedImgSize / (1024*1024)).toFixed(3);
+	  const originalImgSize = (file.size / (1024*1024)).toFixed(3);
+	  console.log(`${file.name}: ${originalImgSize} MB > ${convertedImgSize} MB`);
 
 	  return imageAsDataURL;
 };
