@@ -100,7 +100,7 @@ teian.formControlClass = class extends HTMLElement {
         const onpaste = formControl.dataset.onpaste;
         if (formControl.dataset.ref) {
             this._updateFormControl(formControl);
-            formControl.addEventListener('input', this._onChange);  
+            formControl.addEventListener("input", this._onChange);
         } 
         
         if (onpaste) {
@@ -143,7 +143,7 @@ teian.formControlClass = class extends HTMLElement {
         const formControl = event.target;
         const ref = formControl.dataset.ref;
         const formControlName = formControl.localName;
-        
+
         var newValue = "";
         switch (formControlName) {
             case "label":
@@ -156,7 +156,7 @@ teian.formControlClass = class extends HTMLElement {
             default:
                 newValue = formControl.value;
         }        
-        
+
         //encode the newValue
         newValue = newValue.replace("<br>", "");
         newValue = newValue.replace(/>/g, "&gt;");

@@ -8,7 +8,7 @@ solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1
 ;
 solirom.data.templates.entryFile =
     solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
-        <entry>
+        <entry type="lemma">
             <form type="headword">
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
                 <gramGrp/>
@@ -775,7 +775,16 @@ solirom.actions._getEntry = async () =>  {
     };
 };
 
-teian.frameworkDefinition["t-entry-template"] = `<slot name="t-form"></slot>`;
+teian.frameworkDefinition["t-entry-template"] = 
+    `
+    <label for="entry-type-selector">Tip intrare</label>
+    <select id="entry-type-selector" data-ref="@type">
+        <option value="lemma">lemă</option>
+        <option value="variant">variantă</option>
+    </select>     
+    <slot name="t-form"></slot>
+    `
+;
 teian.frameworkDefinition["t-entryfree-template"] = 
     `
         <style>
@@ -888,7 +897,7 @@ teian.frameworkDefinition["t-include-template"] =
     `
 ;    
 //<solirom-mini-editor id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ru-Cyrs"></solirom-mini-editor>
-customElements.define("t-entry", class extends teian.divClass {
+customElements.define("t-entry", class extends teian.formControlClass {
     constructor() {
         super();
     }
