@@ -69,8 +69,11 @@ export default class DataEditorComponent extends HTMLElement {
                     }
                     ${soliromUtils.awesomeButtonStyle}   
                     #delete-entry-reference-button {
-                        background-color: green;
-                    }                                   
+                        background-color: #98d964;
+                    } 
+                    #delete-multiple-entry-references-button {
+                        background-color: #968ced;
+                    }                                                      
                 </style> 
                 <div id="content">
                     <div id="master">
@@ -78,9 +81,11 @@ export default class DataEditorComponent extends HTMLElement {
                             <button id="add-entry-button" class="fa-button" title="Adăugare intrare">&#xf15b;</button>
                             <button id="duplicate-entry-button" class="fa-button" title="Duplicare ultima intrare din transcrierea anterioară">&#xf24d;</button>
                             <button id="delete-entry-button" class="fa-button" title="Ștergere intrare">&#xf2ed;</button>
-                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>
-                            <button id="sort-entries-button" class="fa-button" title="Sortare intrări">&#xf162;</button>
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
+                            <br/>
+                            <button id="sort-entries-button" class="fa-button" title="Sortare intrări">&#xf162;</button>
+                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>
+                            <button id="delete-multiple-entry-references-button" class="fa-button" title="Ștergere a tuturor intrărilor">&#xf2ed;</button>
                             <br/>
                             <label for="transcription-status-selector">Stare transcriere</label>
                             <select id="transcription-status-selector">
@@ -154,6 +159,10 @@ export default class DataEditorComponent extends HTMLElement {
             
             if (target.matches("#delete-entry-reference-button")) {
                 await this.deleteEntryReference();
+            }
+
+            if (target.matches("#delete-multiple-entry-references-button")) {
+                await this.deleteMultipleEntryReferences();
             }
 
             if (target.matches("#sort-entries-button")) {
@@ -628,6 +637,56 @@ export default class DataEditorComponent extends HTMLElement {
 
         window.solirom.controls.loadingSpinner.hide();
     } 
+
+    /**
+     * Deletes all the entry references || TODO: this function will be removed when
+     * CLRE will be transcribed
+     * @public
+     * @return void
+     */    
+     async deleteMultipleEntryReferences() {
+        window.solirom.controls.loadingSpinner.show();         
+
+        const entryIncludeElements = this.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']");
+        const username = document.querySelector("kuberam-login-element").username;
+
+        try {
+            for (const entryIncludeElement of entryIncludeElements) {
+                const entryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, entryIncludeElement.getAttribute("href")], "/");
+                const entrySHA = await solirom.actions.getSHA(entryPath);
+    
+                await solirom.data.repos.cflr.client({
+                    "method": "DELETE",
+                    "path": entryPath,
+                    "sha": entrySHA,
+                    "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                    "committer": {
+                        "email": username,
+                        "name": username
+                    },
+                });
+
+                entryIncludeElement.remove();
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Eroare la ștergerea intrărilor asociate transcrierii.");
+    
+            return;
+        }
+
+        // save the transcription
+        try {
+            await this.saveTranscription();
+        } catch (error) {
+            console.error(error);
+            alert("Transcrierea nu poate fi salvată.");
+
+            return;
+        }          
+
+        window.solirom.controls.loadingSpinner.hide();
+     }
 
     /**
      * Sort the entries' references in a transcription
