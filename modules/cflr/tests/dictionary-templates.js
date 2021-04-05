@@ -373,32 +373,6 @@ export default class DataEditorComponent extends HTMLElement {
             personsElement.insertAdjacentHTML("afterbegin", editorAsString);
         }
 
-        // save the entry in dictionary
-        const entry = this.entryEditor.exportDataAsString();
-        const entrySha = await solirom.actions.getSHA(solirom.data.entry.path);
-
-        var result;
-        try {
-            result = await solirom.data.repos.cflr.client({
-                method: "PUT",
-                path: solirom.data.entry.path,
-                "sha": entrySha,                
-                content: solirom.actions.b64EncodeUnicode(entry),
-                "message": (new Date()).toISOString().split('.')[0] + ", " + username,
-                "committer": {
-                    "email": username,
-                    "name": username
-                },
-            });
-            result = result.data.content;		
-        } catch (error) {
-            console.error(error);
-            alert("Intrarea nu poate fi salvată.");
-            return;
-        }
-    
-        this.entryEditor.setAttribute("status", "edit");
-
         // save the entry in lexicon
         const editorContents = this.entryEditor.getContents();
         const lemmaOrthElement = editorContents.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']");
@@ -479,6 +453,32 @@ export default class DataEditorComponent extends HTMLElement {
                 return;
             }
         }
+
+        // save the entry in dictionary
+        const entry = this.entryEditor.exportDataAsString();
+        const entrySha = await solirom.actions.getSHA(solirom.data.entry.path);
+
+        var result;
+        try {
+            result = await solirom.data.repos.cflr.client({
+                method: "PUT",
+                path: solirom.data.entry.path,
+                "sha": entrySha,                
+                content: solirom.actions.b64EncodeUnicode(entry),
+                "message": (new Date()).toISOString().split('.')[0] + ", " + username,
+                "committer": {
+                    "email": username,
+                    "name": username
+                },
+            });
+            result = result.data.content;		
+        } catch (error) {
+            console.error(error);
+            alert("Intrarea nu poate fi salvată.");
+            return;
+        }
+    
+        this.entryEditor.setAttribute("status", "edit");        
 
         window.solirom.controls.loadingSpinner.hide();       
     }  
