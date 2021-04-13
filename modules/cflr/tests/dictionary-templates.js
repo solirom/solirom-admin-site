@@ -20,7 +20,6 @@ solirom.data.templates.entryFile =
         <entryFree>
             <form type="current-orth">
                 <orth xml:lang="ro-x-accent-upcase-vowels"/>
-                <gramGrp/>
             </form>
             <idno type="lexicon"/>
         </entryFree>                
@@ -124,7 +123,6 @@ export default class DataEditorComponent extends HTMLElement {
         this.selectedPbElement = null;
 
         this.entryEditor = shadowRoot.querySelector("#entry-editor");
-        this.saveEntryButton = shadowRoot.querySelector("#save-entry-button");
 
         shadowRoot.addEventListener("click", async (event) => {
             const target = event.composedPath()[0];
@@ -244,7 +242,7 @@ export default class DataEditorComponent extends HTMLElement {
         shadowRoot.addEventListener("input", (event) => {
             const target = event.composedPath()[0];
             
-            if (target.matches("#orth-mini-editor, #gramGrp-input")) {
+/*             if (target.matches("#orth-mini-editor, #gramGrp-input")) {
                 const formElement = target.getRootNode().host.closest("*[data-name = 'form']");
                 const formType = formElement.getAttribute("type");
 
@@ -264,7 +262,7 @@ export default class DataEditorComponent extends HTMLElement {
                     lemmaOrthElement.dispatchEvent(new Event("input"));
                 }
                  
-            }           
+            }  */          
         }, false);        
     }    
 
@@ -381,7 +379,7 @@ export default class DataEditorComponent extends HTMLElement {
         }
 
         // save the entry in lexicon
-        const editorContents = this.entryEditor.getContents();
+/*         const editorContents = this.entryEditor.getContents();
         const lemmaOrthElement = editorContents.querySelector("*[data-name = 'entryFree'][type = 'lemma'] *[data-name = 'orth']");
         const headword = lemmaOrthElement.dataset.value;
 
@@ -459,7 +457,7 @@ export default class DataEditorComponent extends HTMLElement {
 
                 return;
             }
-        }
+        } */
 
         // save the entry in dictionary
         const entry = this.entryEditor.exportDataAsString();
@@ -800,7 +798,7 @@ teian.frameworkDefinition["t-entryfree-template"] =
                 margin-top: 10px;
             }
         </style>    
-        <label>Lemă</label>
+        <label>Formă ortografică actuală</label>
         <slot name="t-form"></slot>
     `
 ;
@@ -808,6 +806,9 @@ teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
+            :host(:not(orth[n])) #homonym-number-input {
+                display: none;
+            }
             :host(*) {
                 width: 350px;
                 display: inline-block;
