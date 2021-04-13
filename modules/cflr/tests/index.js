@@ -233,7 +233,7 @@ document.addEventListener("input", event => {
             
             var collection = solirom.data.collection;
             if (collection !== "all") {
-            		collection = "AND collection:"  + collection;
+            	collection = "AND collection:"  + collection;
 				searchValue = searchValue + collection;	
             }
             
