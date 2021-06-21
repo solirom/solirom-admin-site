@@ -1,4 +1,3 @@
-import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
 import * as soliromUtils from "/modules/utils/solirom-utils.js";
 //import MiniEditorComponent from '/modules/solirom-mini-editor/solirom-mini-editor.js';
@@ -7,7 +6,7 @@ import LanguageSelectorComponent from '/modules/solirom-language-selector/soliro
 solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation"/>`
 ;
 solirom.data.templates.entryFile =
-    solirom.actions.html`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
+    solirom.actions.generateMarkup`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
         <entry type="lemma">
             <form type="headword">
                 <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
@@ -26,16 +25,21 @@ solirom.data.templates.entryFile =
     </body>`
 ;
 solirom.data.templates.entryReference =
-    solirom.actions.html`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="${props => props.cert}" class="list-group-item" draggable="true"></t-include>`
+    solirom.actions.generateMarkup`<t-include data-name="xi:include" data-ns="http://www.w3.org/2001/XInclude" data-value="" slot="t-include" href="${props => props.entryPath}" xpointer="/1/1" label="${props => props.label}" cert="${props => props.cert}" class="list-group-item" draggable="true"></t-include>`
 ;
 solirom.data.templates.editor =
-    solirom.actions.html`<t-editor data-name="editor" data-ns="http://www.tei-c.org/ns/1.0" data-value="${props => props.username}" slot="t-editor" role="${props => props.userRole}"></t-editor>`
+    solirom.actions.generateMarkup`<t-editor data-name="editor" data-ns="http://www.tei-c.org/ns/1.0" data-value="${props => props.username}" slot="t-editor" role="${props => props.userRole}"></t-editor>`
 ; 
 solirom.data.templates.lexiconEntry = 
-    solirom.actions.html`<entryFree xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}"><form><orth n="${props => props.homonymNumber}" xml:lang="ro-x-accent-upcase-vowels">${props => props.headword}</orth><gramGrp>${props => props.gramGrp}</gramGrp></form></entryFree>
+    solirom.actions.generateMarkup`<entryFree xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}"><form><orth n="${props => props.homonymNumber}" xml:lang="ro-x-accent-upcase-vowels">${props => props.headword}</orth><gramGrp>${props => props.gramGrp}</gramGrp></form></entryFree>
 
     `
-;       
+; 
+solirom.data.templates.sicTemplate =
+    solirom.actions.generateMarkup`
+        <sic xmlns="http://www.tei-c.org/ns/1.0">${props => props.selection}</hi>
+    `
+;      
 solirom.data.entry = {
 	"path": ""
 };
@@ -84,15 +88,16 @@ export default class DataEditorComponent extends HTMLElement {
                             <button id="display-metadata-editor-button" class="fa-button" title="Întoarcere la numerotare pagini">&#xf03a;</button>
                             <br/>
                             <button id="sort-entries-button" class="fa-button" title="Sortare intrări">&#xf162;</button>
-                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere duplicat intrare">&#xf2ed;</button>
+                            <button id="delete-entry-reference-button" class="fa-button" title="Ștergere referință intrare">&#xf2ed;</button>
                             <button id="delete-multiple-entry-references-button" class="fa-button" title="Ștergere a tuturor intrărilor">&#xf2ed;</button>
                             <br/>
-                            <label for="transcription-status-selector">Stare transcriere</label>
+                            <label for="transcription-status-selector">Stare pagină</label>
                             <select id="transcription-status-selector">
                                 <option value="unknown"></option>
                                 <option value="validated">validată</option>
                                 <option value="reviewed">revizuită</option>
                             </select> 
+                            <label for="entries-number">Nr. intrări: </label><output id="entries-number">0</output>
                         </div>
                         <teian-editor id="transcription-editor" style="width: 95%; height: 910px;"></teian-editor>                        
                     </div>
@@ -114,6 +119,7 @@ export default class DataEditorComponent extends HTMLElement {
         ; 
 
         this.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
+        solirom.controls.entriesNumberOutput = shadowRoot.querySelector("#entries-number");
         solirom.controls.transcriptionEditor = shadowRoot.querySelector("#transcription-editor");
         solirom.controls.transcriptionEditor.getContents().style.padding = "5px";
         this.entryStatusSelector = shadowRoot.querySelector("#entry-status-selector");
@@ -169,12 +175,17 @@ export default class DataEditorComponent extends HTMLElement {
             }
 
             if (target.matches("#save-entry-button")) {
-                const transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
-                const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']").shadowRoot;
-                const transcriptionReference = selectedIncludeElement.querySelector(".transcription-reference");
-                const transcriptionDetail = selectedIncludeElement.querySelector(".transcription-detail");
+                var transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
+                transcriptionLabel = transcriptionLabel.replace(/(&lt;[^&gt;]+&gt;|&lt;[^&gt;]>|&lt;\/[^&gt;]>)/g,"");
+                const entryType = this.entryEditor.shadowRoot.querySelector("*[data-name = 'entry']").getAttribute("type");
+                const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
+                const transcriptionReference = selectedIncludeElement.shadowRoot.querySelector(".transcription-reference");
+                const transcriptionDetail = selectedIncludeElement.shadowRoot.querySelector(".transcription-detail");
                 transcriptionReference.setAttribute("title", transcriptionLabel);
                 transcriptionDetail.innerHTML = transcriptionLabel;
+                if (entryType === "variant") {
+                    selectedIncludeElement.classList.add("var-entry-reference");
+                }
                 transcriptionDetail.dispatchEvent(new Event("input"));
 
                 await this.saveEntry();
@@ -187,6 +198,10 @@ export default class DataEditorComponent extends HTMLElement {
                 miniEditorTextContent = miniEditorTextContent.toUpperCase();
                 miniEditor.textContent = miniEditorTextContent;
                 miniEditor.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+            }
+
+            if (target.matches("#sic-button")) {
+                solirom.actions.insertMarkup(solirom.data.templates.sicTemplate);
             }
         }, false);
 
@@ -228,10 +243,12 @@ export default class DataEditorComponent extends HTMLElement {
             const target = event.composedPath()[0];
             
             if (target.matches("#language-selector")) {
-                const orthShadowRoot = target.getRootNode();
-                const orthElement = orthShadowRoot.querySelector("#orth-mini-editor");
-                orthElement.focus();
                 document.execCommand('insertHTML', false, event.detail);
+
+                // const orthShadowRoot = target.getRootNode();
+                // const orthElement = orthShadowRoot.querySelector("#orth-mini-editor");
+                // orthElement.focus();
+                // document.execCommand('insertHTML', false, event.detail);
             }
         }, false);
         
@@ -290,9 +307,11 @@ export default class DataEditorComponent extends HTMLElement {
 		solirom.controls.transcriptionEditor.setAttribute("status", "edit");
         solirom.controls.transcriptionEditor.setAttribute("src", "data:application/xml;" + solirom.data.transcription.contents);  
         
-        const abElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']");        
+        const abElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']"); 
         abElement.classList.add("list-group");
-        [...solirom.controls.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")].forEach(
+        const xincludeElements = [...solirom.controls.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")];
+        solirom.controls.entriesNumberOutput.textContent = xincludeElements.length;
+        xincludeElements.forEach(
             includeElement => {
                 includeElement.classList.add("list-group-item");
                 const transcriptionReference = includeElement.shadowRoot.querySelector(".transcription-reference");
@@ -336,7 +355,9 @@ export default class DataEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            alert("Transcrierea nu poate fi salvată.");
+            solirom.controls.loadingSpinner.hide();            
+            alert("Transcrierea nu a fost salvată. Repetați salvarea.");
+            
             return;
         }    
 
@@ -395,6 +416,7 @@ export default class DataEditorComponent extends HTMLElement {
                 lexiconEntryId = await fetch("https://uuid.solirom.ro/lexicon").then(response => response.text());
             } catch (error) {
                 console.error(error);
+                window.solirom.controls.loadingSpinner.hide();
                 alert("Nu se poate genera un identificator pentru intrarea din lexicon.");
 
                 return;
@@ -416,6 +438,7 @@ export default class DataEditorComponent extends HTMLElement {
                 });    
             } catch (error) {
                 console.error(error);
+                window.solirom.controls.loadingSpinner.hide();
                 alert("Nu se poate salva intrarea în lexicon.");
 
                 return;
@@ -453,6 +476,7 @@ export default class DataEditorComponent extends HTMLElement {
                 });    
             } catch (error) {
                 console.error(error);
+                window.solirom.controls.loadingSpinner.hide();
                 alert("Nu se poate salva intrarea în lexicon.");
 
                 return;
@@ -479,7 +503,9 @@ export default class DataEditorComponent extends HTMLElement {
             result = result.data.content;		
         } catch (error) {
             console.error(error);
-            alert("Intrarea nu poate fi salvată.");
+            solirom.controls.loadingSpinner.hide();            
+            alert("Intrarea nu a fost salvată. Repetați salvarea.");
+            
             return;
         }
     
@@ -501,7 +527,9 @@ export default class DataEditorComponent extends HTMLElement {
             entryId = await fetch("https://uuid.solirom.ro/cflr-" + solirom.data.work.id).then(response => response.text());
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Nu se poate genera un identificator pentru intrare.");
+            
             return;
         }  
         const transcriptionEditor = solirom.controls.transcriptionEditor.shadowRoot;
@@ -515,6 +543,9 @@ export default class DataEditorComponent extends HTMLElement {
         } else {
             currentEntryReferenceElement.insertAdjacentHTML("afterend", newEntryReference);
         }
+        
+        const xincludeElements = [...transcriptionEditor.querySelectorAll("*[data-name = 'xi:include']")];
+        solirom.controls.entriesNumberOutput.textContent = xincludeElements.length;
         
         const newEntryReferenceElement = transcriptionEditor.querySelector("*[data-name = 'xi:include'][href = '" + newEntryPath + "']");
 
@@ -530,6 +561,7 @@ export default class DataEditorComponent extends HTMLElement {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Intrarea nu poate fi creată.");
             
             return;
@@ -555,6 +587,9 @@ export default class DataEditorComponent extends HTMLElement {
             const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
             const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label"), "cert": lastEntryReference.getAttribute("cert")});
             solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
+            
+            const xincludeElements = [...solirom.controls.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")];
+            solirom.controls.entriesNumberOutput.textContent = xincludeElements.length;
 
             // save the transcription
             await document.querySelector("data-editor").saveTranscription();
@@ -601,13 +636,17 @@ export default class DataEditorComponent extends HTMLElement {
 
         // remove the transcription reference
         this.selectedIncludeElement.remove();
+        const xincludeElements = [...solirom.controls.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")];
+        solirom.controls.entriesNumberOutput.textContent = xincludeElements.length;        
 
         // save the transcription
         try {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Transcrierea nu poate fi salvată.");
+            
             return;
         }        
 
@@ -629,12 +668,15 @@ export default class DataEditorComponent extends HTMLElement {
 
         // remove the transcription reference
         this.selectedIncludeElement.remove();
+        const xincludeElements = [...solirom.controls.transcriptionEditor.shadowRoot.querySelectorAll("*[data-name = 'xi:include']")];
+        solirom.controls.entriesNumberOutput.textContent = xincludeElements.length;        
 
         // save the transcription
         try {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Transcrierea nu poate fi salvată.");
 
             return;
@@ -675,6 +717,7 @@ export default class DataEditorComponent extends HTMLElement {
             }
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Eroare la ștergerea intrărilor asociate transcrierii.");
     
             return;
@@ -685,10 +728,14 @@ export default class DataEditorComponent extends HTMLElement {
             await this.saveTranscription();
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Transcrierea nu poate fi salvată.");
 
             return;
-        }          
+        } 
+
+        solirom.controls.entriesNumberOutput.textContent = 0;        
+        
 
         window.solirom.controls.loadingSpinner.hide();
      }
@@ -726,7 +773,9 @@ export default class DataEditorComponent extends HTMLElement {
             await document.querySelector("data-editor").saveTranscription();
         } catch (error) {
             console.error(error);
+            window.solirom.controls.loadingSpinner.hide();
             alert("Transcrierea nu poate fi salvată.");
+            
             return;
         }        
 
@@ -767,6 +816,7 @@ solirom.actions._getEntry = async () =>  {
         result = result.data;		
     } catch (error) {
         console.error(error);
+        window.solirom.controls.loadingSpinner.hide();
         // TODO: When an entry is deleted, it has to be deleted from all the transcriptions it is referred within
         //alert("Eroare la încărcarea intrării.");
         return;
@@ -786,7 +836,11 @@ teian.frameworkDefinition["t-entry-template"] =
     <select id="entry-type-selector" data-ref="@type">
         <option value="lemma">lemă</option>
         <option value="variant">variantă</option>
-    </select>     
+    </select> 
+    <button id="sic-button" title="Forma din text">sic</button>
+    <button id="corr-button" title="Forma corectă">cor</button>   
+    <br/>
+    <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
     <slot name="t-form"></slot>
     `
 ;
@@ -806,40 +860,41 @@ teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
-            :host(:not(orth[n])) #homonym-number-input {
-                display: none;
-            }
             :host(*) {
                 width: 350px;
                 display: inline-block;
             }
-            #orth-mini-editor {
+            :host(:not(*[n])) #n-control {
+                display: none;
+            }             
+            #orth-mini-editor, #n-control {
                 background-color: white;
                 padding: 3px;
                 border: 1px solid black;
             }
-            #homonym-number-input {
-                width: 50px;
-            } 
             ${soliromUtils.awesomeButtonStyle}
+            sic {
+                background-color: orange;
+            }
         </style>
-        <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs">
-            <button id="uppercase-text-button" class="fa-button" slot="custom-toolbar" title="Transformare litere în majuscule">&#xf062;</button>
-        </solirom-language-selector>
-        <div id="orth-mini-editor" contenteditable="true" data-ref="#text" title="Cuvânt titlu"></div>
-        <input id="homonym-number-input" data-ref="@n" title="Nr. omonim"/>        
+        <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button>        
+        <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
+        <div id="n-control" contenteditable="true" data-ref="@n" title="Nr. ordine omonim"></div>
     `
 ;
 teian.frameworkDefinition["t-gramgrp-template"] = 
     `
         <style>
-            #gramGrp {
-                width: 350px;
-                display: inline-block;
+            #gramGrp-control {
+                background-color: white;
+                padding: 3px;
                 border: 1px solid black;
             }
+            sic {
+                background-color: orange;
+            }            
         </style>
-        <input id="gramGrp-input" data-ref="#text" title="Indicații gramaticale"/>
+        <div id="gramGrp-control" contenteditable="true" data-ref="#text" title="Indicații gramaticale"></div>
     `
 ;
 teian.frameworkDefinition["t-ab-template"] = 
@@ -861,7 +916,10 @@ teian.frameworkDefinition["t-include-template"] =
             }      
             :host(.selected-entry-reference) {
                 background-color: #adacac;                                                   
-            }                          
+            } 
+            :host(.var-entry-reference) {
+                background-color: #f8f559;                                                   
+            }                                     
             .transcription-reference {
                 display: inline-block;
                 width: 100%;

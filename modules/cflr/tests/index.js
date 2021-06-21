@@ -1,4 +1,3 @@
-import solirom from "/modules/solirom/solirom.js";
 import Sortable from '/modules/sortable/sortable.esm.js';
 import {request as githubClient} from "https://cdn.skypack.dev/@octokit/request";
 
@@ -33,13 +32,13 @@ solirom.data.transcription = {
 	"contents": ""
 };
 solirom.data.templates = {
-	"volumeSelectorOption": solirom.actions.html`
+	"volumeSelectorOption": solirom.actions.generateMarkup`
 		<option xmlns="http://www.w3.org/1999/xhtml" value="${props => props.value}">${props => props.label}</option>
 	`,
-	"pb": solirom.actions.html`
+	"pb": solirom.actions.generateMarkup`
 		<t-pb xmlns="http://www.w3.org/1999/xhtml" data-name="pb" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-pb"  n="" facs="${props => props.facs}" cert="unknown" corresp="${props => props.transcriptionPath}"></t-pb>
 	`,
-	"img": solirom.actions.html`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
+	"img": solirom.actions.generateMarkup`<img xmlns="http://www.w3.org/1999/xhtml" id="scan" src="${props => props.src}"/>`
 };
 solirom.data.scan = {
 	"name": ""

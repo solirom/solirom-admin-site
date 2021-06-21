@@ -193,7 +193,7 @@ solirom.file.save = function() {
     const documentIndex = {
         "a": encodeURIComponent(username),
         "s": teian.dataInstances.outputData.querySelector("revisionDesc").getAttribute("status"),
-        "l": encodeURIComponent(teian.dataInstances.outputData.querySelector("orth").textContent),
+        "l": teian.dataInstances.outputData.querySelector("orth").textContent.trim(),
         "sigla": Array.from(teian.dataInstances.outputData.querySelectorAll("bibl > ptr")).map(element => encodeURIComponent(element.getAttribute("target").replace(",", "").replace(" ", ""))).join(" ")
     } 
 
@@ -208,6 +208,7 @@ solirom.file.save = function() {
     .then(function(response) {
         if (response.status == 200) {
             document.querySelector("teian-editor").setAttribute("status", "edit");
+
             // index the document
 	        fetch("/api/index/" + solirom.data.indexName + "/" + documentId, {
 	            method: "PUT",

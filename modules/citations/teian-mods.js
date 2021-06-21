@@ -336,8 +336,8 @@ teian.frameworkDefinition = {
                 <label for="re">Variantă</label>
                 <select data-ref="@type">
                     <option value=""></option>
-                    <option label="writing">de scriere</option>
-                    <option label="lexical">lexicală</option>
+                    <option value="writing">de scriere</option>
+                    <option value="lexical">lexicală</option>
                 </select>
                 <input id="re" data-ref="#text"/>
             </div>
@@ -463,3 +463,4 @@ teian.actions.pasteAsPlainText = (event) => {
 
     document.execCommand("insertText", false, text);
 };
+document.execCommand('defaultParagraphSeparator', false, 'p');

@@ -16,7 +16,7 @@ document.addEventListener("click", async (event) => {
         image.onload = () => {
             targetCanvasCtx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 500, 900);
         };        
-        const imageAsDataURL = sourceCanvas.toDataURL("image/png", 0.1);
+        const imageAsDataURL = sourceCanvas.toDataURL("image/png", 1);
 
         const head = "data:image/png;base64,";
         const imgFileSize = Math.round((imageAsDataURL.length - head.length) * 3 / 4) ;
@@ -33,7 +33,7 @@ document.addEventListener("click", async (event) => {
         image.onload = () => {
             targetCanvasCtx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 500, 900);
         };   
-        const imageAsDataURL = sourceCanvas.toDataURL("image/webp", 0.1);
+        const imageAsDataURL = sourceCanvas.toDataURL("image/webp", 1);
 
         const head = "data:image/webp;base64,";
         const imgFileSize = Math.round((imageAsDataURL.length - head.length) * 3 / 4) ;
@@ -43,7 +43,7 @@ document.addEventListener("click", async (event) => {
     
     if (target.matches("#save-converted-image")) {
         const sourceCanvas = document.querySelector("#source-image-canvas");
-        const convertedImageAsDataURL = sourceCanvas.toDataURL("image/webp", 0.1);
+        const convertedImageAsDataURL = sourceCanvas.toDataURL("image/webp", 1);
 
         console.log(convertedImageAsDataURL);
     }
