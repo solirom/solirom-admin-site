@@ -28,8 +28,7 @@ solirom.data.work = {
 	"id": ""
 };
 solirom.data.transcription = {
-	"path": "",
-	"contents": ""
+	"path": ""
 };
 solirom.data.templates = {
 	"volumeSelectorOption": solirom.actions.generateMarkup`
@@ -327,6 +326,9 @@ document.addEventListener("change", async (event) => {
 				},
 			});
 
+			const currentPbElement = solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "'] *[data-name = 'pb'][facs = '" + currentScanName + "']");
+			teian.actions.selectPageBreak(currentPbElement);
+
 			solirom.actions.updateImageViewerURL(currentScanName);	
 			solirom.controls.loadingSpinner.hide();				
 		} catch (error) {
@@ -543,6 +545,7 @@ solirom.actions.addScan = async (file) => {
 
 	const textSection = solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = '" + solirom.data.work.textSection + "']");
 	textSection.insertAdjacentHTML("beforeend", solirom.data.templates.pb({"facs": newScanName, "transcriptionPath": newTranscriptionPath}));
+	teian.actions.selectPageBreak(textSection.lastElementChild);
 	
 	try {
 		await solirom.data.repos.cflr.client({
@@ -562,6 +565,7 @@ solirom.actions.addScan = async (file) => {
 		return;
 	}
 
+	solirom.actions.updateImageViewerURL(newScanName);
 	solirom.controls.loadingSpinner.hide();		
 };
 
@@ -589,33 +593,40 @@ solirom.actions.deleteScan = async () => {
 			});
 		} catch (error) {
 			console.error(error);
+			solirom.controls.loadingSpinner.hide();	
+
 			alert("Eroare la ștergerea scanului.");
 	
 			return;
 		}
-		document.querySelector("#scan").src = "";	
-		
+		document.querySelector("#scan").src = "";
+
 		const transcriptionName = "t" + scanName.match(/\d+/)[0] + ".xml";
-		solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
+		const transcriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, transcriptionName], "/");
 		try {
-			await solirom.actions.deleteTranscription();
+			await solirom.actions.deleteTranscription(transcriptionPath);
 		} catch (error) {
 			console.error(error);
+			solirom.controls.loadingSpinner.hide();	
+
 			alert("Eroare la ștergerea transcrierii.");
 
 			return;
 		}
 
+		solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();
+
 		try {
 			await solirom.actions.saveMetadata();
 		} catch (error) {
 			console.error(error);
+			solirom.controls.loadingSpinner.hide();	
+
 			alert("Eroare la salvarea metadatelor.");
 			
 			return;
 		}
 
-		solirom.controls.metadataEditor.shadowRoot.querySelector("#content *[data-name = 'pb'][facs = '" + scanName + "']").remove();		
 		solirom.controls.loadingSpinner.hide();		
 	}
 };
@@ -625,19 +636,18 @@ solirom.actions.deleteScan = async () => {
  * @public
  * @return void
  */ 
-solirom.actions.deleteTranscription = async () => {
+solirom.actions.deleteTranscription = async (transcriptionPath) => {
 	const username = document.querySelector("kuberam-login-element").username;
 
-	await solirom.actions._globalGetTranscription();
-	
-	const transcriptionDocument = (new DOMParser()).parseFromString(solirom.data.transcription.contents, "application/xml").documentElement;
+	const transcription = await solirom.actions._getTranscription(transcriptionPath);
+	const transcriptionDocument = (new DOMParser()).parseFromString(transcription, "application/xml").documentElement;
 	const entryIncludeElements = transcriptionDocument.querySelectorAll("*|include");
-	const transcriptionSha = await solirom.actions.getSHA(solirom.data.transcription.path);
+	const transcriptionSha = await solirom.actions.getSHA(transcriptionPath);
 
 	try {
 		await solirom.data.repos.cflr.client({
 			"method": "DELETE",
-			"path": solirom.data.transcription.path,
+			"path": transcriptionPath,
 			"sha": transcriptionSha,
 			"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 			"committer": {
@@ -647,6 +657,8 @@ solirom.actions.deleteTranscription = async () => {
 		});	
 	} catch (error) {
 		console.error(error);
+		solirom.controls.loadingSpinner.hide();
+
 		alert("Eroare la ștergerea transcrierii.");
 
 		return;
@@ -654,13 +666,13 @@ solirom.actions.deleteTranscription = async () => {
 
 	try {
 		for (const entryIncludeElement of entryIncludeElements) {
-			solirom.data.entry.path = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, entryIncludeElement.getAttribute("href")], "/");
-			const entryMetadata = await solirom.actions._getEntry();
+			const entryPath = solirom.actions.composePath([solirom.data.work.volumeNumber, solirom.data.repos.cflr.transcriptionsPath, entryIncludeElement.getAttribute("href")], "/");
+			const entrySha = await solirom.actions.getSHA(entryPath);
 
 			await solirom.data.repos.cflr.client({
 				"method": "DELETE",
-				"path": entryMetadata.path,
-				"sha": entryMetadata.sha,
+				"path": entryPath,
+				"sha": entrySha,
 				"message": (new Date()).toISOString().split('.')[0] + ", " + username,
 				"committer": {
 					"email": username,
@@ -670,16 +682,12 @@ solirom.actions.deleteTranscription = async () => {
 		}
 	} catch (error) {
 		console.error(error);
+		solirom.controls.loadingSpinner.hide();
+
 		alert("Eroare la ștergerea intrărilor asociate transcrierii.");
 
 		return;
 	}	
-};
-
-solirom.actions._globalGetTranscription = async () => {
-	const result = await solirom.actions._getTranscription(solirom.data.transcription.path);
-
-	solirom.data.transcription.contents = result.contents;		
 };
 
 solirom.actions._getTranscription = async (path) => {
@@ -691,19 +699,17 @@ solirom.actions._getTranscription = async (path) => {
 			headers: {
 				'If-None-Match': ''
 			  }			
-		});
-		result = result.data;		
+		});	
 	} catch (error) {
 		console.error(error);
+		solirom.controls.loadingSpinner.hide();
+
 		alert("Eroare la încărcarea transcrierii.");
+
 		return;
 	}
 
-    return {
-        "path": path,
-        "sha": result.sha,
-        "contents": solirom.actions.b64DecodeUnicode(result.content)
-    };	
+    return solirom.actions.b64DecodeUnicode(result.data.content);	
 };
 
 solirom.actions.composePath = (steps, separator) => {

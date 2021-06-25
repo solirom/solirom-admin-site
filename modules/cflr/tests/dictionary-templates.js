@@ -5,14 +5,16 @@ import LanguageSelectorComponent from '/modules/solirom-language-selector/soliro
 
 solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation"/>`
 ;
+solirom.data.templates.headwordForm =
+    `<form xmlns="http://www.tei-c.org/ns/1.0" type="headword">
+        <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+        <gramGrp/>
+    </form>
+    `
+;
 solirom.data.templates.entryFile =
     solirom.actions.generateMarkup`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
-        <entry type="lemma">
-            <form type="headword">
-                <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
-                <gramGrp/>
-            </form>
-        </entry>
+        <entry type="lemma">${solirom.data.templates.headwordForm}</entry>
         <note type="persons">
             <editor role="transcriber">${props => props.author}</editor>
         </note>
@@ -193,7 +195,7 @@ export default class DataEditorComponent extends HTMLElement {
             }
 
             if (target.matches("#uppercase-text-button")) {
-                const miniEditor = target.getRootNode().querySelector("#orth-mini-editor");
+                const miniEditor = window.getSelection().getRangeAt(0).commonAncestorContainer.parentElement.closest("#orth-mini-editor");
                 var miniEditorTextContent = miniEditor.textContent;
                 miniEditorTextContent = miniEditorTextContent.toUpperCase();
                 miniEditor.textContent = miniEditorTextContent;
@@ -302,10 +304,9 @@ export default class DataEditorComponent extends HTMLElement {
         var transcriptionPath = selectedPbElement.getAttribute("corresp");
         solirom.data.transcription.path = solirom.actions.composePath([solirom.data.work.volumeNumber, transcriptionPath], "/");
 
-        await solirom.actions._globalGetTranscription();        
-
+        const transcription = await solirom.actions._getTranscription(solirom.data.transcription.path);        
 		solirom.controls.transcriptionEditor.setAttribute("status", "edit");
-        solirom.controls.transcriptionEditor.setAttribute("src", "data:application/xml;" + solirom.data.transcription.contents);  
+        solirom.controls.transcriptionEditor.setAttribute("src", "data:application/xml;" + transcription);  
         
         const abElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']"); 
         abElement.classList.add("list-group");
@@ -377,7 +378,7 @@ export default class DataEditorComponent extends HTMLElement {
         const entry = await solirom.actions._getEntry();
 
 		this.entryEditor.setAttribute("status", "edit");
-        this.entryEditor.setAttribute("src", "data:application/xml;" + entry.contents);
+        this.entryEditor.setAttribute("src", "data:application/xml;" + entry);
 
         window.solirom.controls.loadingSpinner.hide();
     }
@@ -583,7 +584,7 @@ export default class DataEditorComponent extends HTMLElement {
             window.solirom.controls.loadingSpinner.show();
             const previousTranscriptionPath = solirom.actions.composePath([solirom.data.work.volumeNumber, previousTranscriptionReference.getAttribute("corresp")], "/");
             const transcriptionResult = await solirom.actions._getTranscription(previousTranscriptionPath);
-            const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult.contents, "application/xml").documentElement;
+            const previousTranscription = (new DOMParser()).parseFromString(transcriptionResult, "application/xml").documentElement;
             const lastEntryReference = previousTranscription.querySelector("*|include:last-of-type");
             const newEntryReference = solirom.data.templates.entryReference({"entryPath": lastEntryReference.getAttribute("href"), "label": lastEntryReference.getAttribute("label"), "cert": lastEntryReference.getAttribute("cert")});
             solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'ab']").insertAdjacentHTML("afterbegin", newEntryReference);
@@ -813,7 +814,7 @@ solirom.actions._getEntry = async () =>  {
 				'If-None-Match': ''
 			  }	
         });
-        result = result.data;		
+        result = result.data.content;		
     } catch (error) {
         console.error(error);
         window.solirom.controls.loadingSpinner.hide();
@@ -822,21 +823,20 @@ solirom.actions._getEntry = async () =>  {
         return;
     }
 
-    const contents = solirom.actions.b64DecodeUnicode(result.content);
-
-    return {
-        "path": path,
-        "contents": contents
-    };
+    return solirom.actions.b64DecodeUnicode(result);
 };
 
 teian.frameworkDefinition["t-entry-template"] = 
     `
+    <style>
+        ${soliromUtils.awesomeButtonStyle}
+    </style>
     <label for="entry-type-selector">Tip intrare</label>
     <select id="entry-type-selector" data-ref="@type">
         <option value="lemma">lemă</option>
         <option value="variant">variantă</option>
-    </select> 
+    </select>
+    <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button> 
     <button id="sic-button" title="Forma din text">sic</button>
     <button id="corr-button" title="Forma corectă">cor</button>   
     <br/>
@@ -856,7 +856,30 @@ teian.frameworkDefinition["t-entryfree-template"] =
         <slot name="t-form"></slot>
     `
 ;
-teian.frameworkDefinition["t-form-template"] = `<slot name="t-orth"></slot><slot name="t-gramgrp"></slot>`;
+teian.frameworkDefinition["t-form-template"] = 
+    `
+        <style>
+            :host(*) {
+                width: 350px;
+                display: inline-block;
+            }
+            :host(:not(*[n])) #n-control {
+                display: none;
+            }             
+            #orth-mini-editor, #n-control {
+                background-color: white;
+                padding: 3px;
+                border: 1px solid black;
+            }
+            ${soliromUtils.awesomeButtonStyle}
+            sic {
+                background-color: orange;
+            }
+        </style>    
+        <slot name="t-orth"></slot><slot name="t-gramgrp"></slot>
+        <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
+    `
+;
 teian.frameworkDefinition["t-orth-template"] = 
     `
         <style>
@@ -877,7 +900,6 @@ teian.frameworkDefinition["t-orth-template"] =
                 background-color: orange;
             }
         </style>
-        <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button>        
         <div id="orth-mini-editor" contenteditable="true" data-ref="#text"></div>
         <div id="n-control" contenteditable="true" data-ref="@n" title="Nr. ordine omonim"></div>
     `

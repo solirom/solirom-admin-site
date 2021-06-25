@@ -164,8 +164,11 @@ solirom.actions.editTranscription = async (element) => {
 };
 
 teian.actions.selectPageBreak = (element) => {
-    const hostElement = element.hostElement;
-    var content = solirom.controls.metadataEditor.getContents();
+    var hostElement = element;
+    if (element.hostElement) {
+        hostElement = element.hostElement;
+    }
+    const content = solirom.controls.metadataEditor.getContents();
     content.querySelectorAll(":scope *[data-name = 'pb']").forEach((pbElement) => pbElement.classList.remove("selected"));
     hostElement.classList.add("selected");
 };
