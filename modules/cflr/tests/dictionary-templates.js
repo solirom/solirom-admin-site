@@ -6,15 +6,20 @@ import LanguageSelectorComponent from '/modules/solirom-language-selector/soliro
 solirom.data.templates.transcriptionFile = `<ab xmlns="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude" type="aggregation"/>`
 ;
 solirom.data.templates.headwordForm =
-    `<form xmlns="http://www.tei-c.org/ns/1.0" type="headword">
-        <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
-        <gramGrp/>
-    </form>
+    `<t-form data-name="form" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-form" type="headword">
+        <t-orth data-name="orth" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-orth" n="" xml:lang="ro-x-accent-upcase-vowels"></t-orth>
+        <t-gramgrp data-name="gramGrp" data-ns="http://www.tei-c.org/ns/1.0" data-value="" slot="t-gramgrp"></t-gramgrp>
+    </t-form>
     `
 ;
 solirom.data.templates.entryFile =
     solirom.actions.generateMarkup`<body xmlns="http://www.tei-c.org/ns/1.0" xml:id="${props => props.id}">
-        <entry type="lemma">${solirom.data.templates.headwordForm}</entry>
+        <entry type="lemma">
+            <form type="headword">
+                <orth n="" xml:lang="ro-x-accent-upcase-vowels"/>
+                <gramGrp/>
+            </form>        
+        </entry>
         <note type="persons">
             <editor role="transcriber">${props => props.author}</editor>
         </note>
@@ -204,6 +209,11 @@ export default class DataEditorComponent extends HTMLElement {
 
             if (target.matches("#sic-button")) {
                 solirom.actions.insertMarkup(solirom.data.templates.sicTemplate);
+            }
+
+            if (target.matches("#add-headword-button")) {
+                const lastHeadword = this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword']:last-of-type")[0];
+                lastHeadword.insertAdjacentHTML("afterend", solirom.data.templates.headwordForm);
             }
         }, false);
 
@@ -838,7 +848,8 @@ teian.frameworkDefinition["t-entry-template"] =
     </select>
     <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button> 
     <button id="sic-button" title="Forma din text">sic</button>
-    <button id="corr-button" title="Forma corectă">cor</button>   
+    <button id="corr-button" title="Forma corectă">cor</button>
+    <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
     <br/>
     <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
     <slot name="t-form"></slot>
@@ -860,24 +871,11 @@ teian.frameworkDefinition["t-form-template"] =
     `
         <style>
             :host(*) {
-                width: 350px;
+                margin-top: 10px;
                 display: inline-block;
-            }
-            :host(:not(*[n])) #n-control {
-                display: none;
-            }             
-            #orth-mini-editor, #n-control {
-                background-color: white;
-                padding: 3px;
-                border: 1px solid black;
-            }
-            ${soliromUtils.awesomeButtonStyle}
-            sic {
-                background-color: orange;
             }
         </style>    
         <slot name="t-orth"></slot><slot name="t-gramgrp"></slot>
-        <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
     `
 ;
 teian.frameworkDefinition["t-orth-template"] = 
