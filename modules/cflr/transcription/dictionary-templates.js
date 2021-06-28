@@ -182,8 +182,31 @@ export default class DataEditorComponent extends HTMLElement {
             }
 
             if (target.matches("#save-entry-button")) {
-                var transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword'] *[data-name = 'orth'], *[data-name = 'form'][type = 'headword'] *[data-name = 'gramGrp']")].map(element => [element.getAttribute("data-value"), element.getAttribute("n")].filter(Boolean).join("")).filter(Boolean).join(" ");
+                var transcriptionLabel = [...this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword']")].map(formElement => {
+                    const orthElement = formElement.querySelector("*[data-name = 'orth']");
+                    const gramGrpElement = formElement.querySelector("*[data-name = 'gramGrp']");
+
+                    var headword = orthElement.getAttribute("data-value"); 
+                    const homonymNumber = orthElement.getAttribute("n");
+                    headword = headword.split(/\s+/).map((item, index) => {
+                        if (index === 0) {
+                            if (item.endsWith(',')) {
+                                item = item.replace(',', '') + homonymNumber + ",";  
+                            } else {
+                                item = item + homonymNumber;
+                            }
+                        }
+                        
+                        return item;
+                    }).filter(Boolean).join(" ");
+                    const gramGrp = gramGrpElement.getAttribute("data-value");
+
+                    return headword + " " + gramGrp;
+                }).filter(Boolean).join(" ");
                 transcriptionLabel = transcriptionLabel.replace(/(&lt;[^&gt;]+&gt;|&lt;[^&gt;]>|&lt;\/[^&gt;]>)/g,"");
+                console.log(transcriptionLabel);
+
+
                 const entryType = this.entryEditor.shadowRoot.querySelector("*[data-name = 'entry']").getAttribute("type");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
                 const transcriptionReference = selectedIncludeElement.shadowRoot.querySelector(".transcription-reference");
