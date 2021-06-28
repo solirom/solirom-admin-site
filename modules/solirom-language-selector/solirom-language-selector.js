@@ -9,10 +9,10 @@ export default class LanguageSelectorComponent extends HTMLElement {
         shadowRoot.innerHTML = `
             <style>
                 #toolbar, #custom-toolbar {
-                    display: inline;
+                    display: block;
                 }
                 #language-selector {
-                    width: 100px;
+                    width: 80px;
                 }
             </style>
             <select id="language-selector" title="Alfabet"></select>
@@ -25,8 +25,8 @@ export default class LanguageSelectorComponent extends HTMLElement {
         const selectorLanguages = this.dataset.languages.split(",").map(item => item.trim());
         this.masterContentContainer = shadowRoot.querySelector("#master-content");
         this.languages = [
-            ["ro-x-accent-upcase-vowels", "ro., lat., maj. acc.", ["Á", "É", "Í", "Ó", "Ú", "Ắ", "Ấ", "Î́", "Ý", "À", "È", "Ì", "Ò", "Ù", "Ằ", "Ầ", "'"]],
-            ["ro-x-accent-lowcase-vowels", "ro., lat., min. acc.", ["á", "é", "í", "ó", "ú", "ắ", "ấ", "î́", "ý", "à", "è", "ì", "ò", "ù", "ằ", "ầ", "'"]],
+            ["ro-x-accent-upcase-vowels", "ro., lat., maj. acc.", ["Á", "É", "Í", "Ó", "Ú", "Ắ", "Ấ", "Î́", "Ý", "À", "È", "Ì", "Ò", "Ù", "Ằ", "Ầ"]],
+            ["ro-x-accent-lowcase-vowels", "ro., lat., min. acc.", ["á", "é", "í", "ó", "ú", "ắ", "ấ", "î́", "ý", "à", "è", "ì", "ò", "ù", "ằ", "ầ"]],
             ["ru-Cyrs", "rusă, chirilice vechi", ["а", "б", "в", "г", "д", "є", "ж", "ѕ", "ӡ", "и", "й", "к", "ʌ", "м", "ɴ", "o", "п", "р", "с", "т", "ѹ", "ꙋ", "ф", "х", "ѡ", "ц", "ч", "ш", "ш̩", "ъ", "ѣ", "ю", "ѩ", "ѥ", "ѧ", "ѫ", "ѯ", "ѱ", "ө", "ѵ", "ꙟ", "џ"]],
             ["el-x-lowcase", "greacă, minuscule", ["α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ", "ν", "ξ", "ο", "π", "ρ", "ς", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"]]
         ];

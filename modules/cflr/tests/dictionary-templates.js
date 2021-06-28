@@ -849,7 +849,9 @@ teian.frameworkDefinition["t-entry-template"] =
     <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button> 
     <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
     <br/>
-    <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
+    <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs">
+        <button data-character="'" slot="custom-toolbar">'</button>
+    </solirom-language-selector>
     <slot name="t-form"></slot>
     `
 ;
