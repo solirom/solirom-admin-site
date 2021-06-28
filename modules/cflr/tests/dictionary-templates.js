@@ -191,7 +191,7 @@ export default class DataEditorComponent extends HTMLElement {
                 transcriptionReference.setAttribute("title", transcriptionLabel);
                 transcriptionDetail.innerHTML = transcriptionLabel;
                 if (entryType === "variant") {
-                    selectedIncludeElement.classList.add("var-entry-reference");
+                    //selectedIncludeElement.classList.add("var-entry-reference");
                 }
                 transcriptionDetail.dispatchEvent(new Event("input"));
 
@@ -847,14 +847,15 @@ teian.frameworkDefinition["t-entry-template"] =
         <option value="variant">variantă</option>
     </select>
     <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button> 
-    <button id="sic-button" title="Forma din text">sic</button>
-    <button id="corr-button" title="Forma corectă">cor</button>
     <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
     <br/>
     <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs"></solirom-language-selector>
     <slot name="t-form"></slot>
     `
 ;
+//<button id="sic-button" title="Forma din text">sic</button>
+//<button id="corr-button" title="Forma corectă">cor</button>
+
 teian.frameworkDefinition["t-entryfree-template"] = 
     `
         <style>
