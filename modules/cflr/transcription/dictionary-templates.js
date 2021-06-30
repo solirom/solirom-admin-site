@@ -204,9 +204,6 @@ export default class DataEditorComponent extends HTMLElement {
                     return headword + " " + gramGrp;
                 }).filter(Boolean).join(" ");
                 transcriptionLabel = transcriptionLabel.replace(/(&lt;[^&gt;]+&gt;|&lt;[^&gt;]>|&lt;\/[^&gt;]>)/g,"");
-                console.log(transcriptionLabel);
-
-
                 const entryType = this.entryEditor.shadowRoot.querySelector("*[data-name = 'entry']").getAttribute("type");
                 const selectedIncludeElement = solirom.controls.transcriptionEditor.shadowRoot.querySelector("*[data-name = 'xi:include'][class *= 'selected-entry-reference']");
                 const transcriptionReference = selectedIncludeElement.shadowRoot.querySelector(".transcription-reference");
@@ -234,9 +231,28 @@ export default class DataEditorComponent extends HTMLElement {
                 solirom.actions.insertMarkup(solirom.data.templates.sicTemplate);
             }
 
-            if (target.matches("#add-headword-button")) {
-                const lastHeadword = this.entryEditor.shadowRoot.querySelectorAll("*[data-name = 'form'][type = 'headword']:last-of-type")[0];
-                lastHeadword.insertAdjacentHTML("afterend", solirom.data.templates.headwordForm);
+            if (target.matches("#add-form-button")) {
+                const currentFormElement = target.getRootNode().host;
+                const currentFormElementParentName = currentFormElement.parentElement.dataset.name;
+
+                switch (currentFormElementParentName) {
+                    case "entry":
+                        currentFormElement.insertAdjacentHTML("afterend", solirom.data.templates.headwordForm);
+                    break;
+                    case "entryFree":
+                        const newFormElement = currentFormElement.cloneNode(true);
+                        currentFormElement.insertAdjacentElement("afterend", newFormElement);
+                    break;
+                }
+            }
+
+            if (target.matches("#delete-form-button")) {
+                const currentFormElement = target.getRootNode().host;
+                const currentFormElementParent = currentFormElement.parentElement;
+                const formElements = currentFormElementParent.querySelectorAll("*[data-name = 'form']");
+                if (formElements.length > 1) {
+                    currentFormElement.remove();
+                }
             }
         }, false);
 
@@ -869,8 +885,7 @@ teian.frameworkDefinition["t-entry-template"] =
         <option value="lemma">lemă</option>
         <option value="variant">variantă</option>
     </select>
-    <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button> 
-    <button id="add-headword-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
+    <button id="uppercase-text-button" class="fa-button" title="Transformare litere în majuscule">&#xf062;</button>
     <br/>
     <solirom-language-selector id="language-selector" data-ref="#text" data-languages="ro-x-accent-upcase-vowels,ro-x-accent-lowcase-vowels,ru-Cyrs">
         <button data-character="'" slot="custom-toolbar">'</button>
@@ -899,9 +914,40 @@ teian.frameworkDefinition["t-form-template"] =
             :host(*) {
                 margin-top: 10px;
                 display: inline-block;
+                padding: 2px;
             }
-        </style>    
-        <slot name="t-orth"></slot><slot name="t-gramgrp"></slot>
+            #content {
+                background: #adacac;    
+                display: grid;
+                grid-template-columns: 330px 1fr; 
+                column-gap: 5px;
+                border-radius: 5px;
+            }            
+            ${soliromUtils.awesomeButtonStyle}            
+            :host(*[type = 'headword']) #toolbar {
+                width: 28px;     
+                padding-left: 22px;                         
+            }
+            :host(*[type = 'headword']) #toolbar button {
+                display: block;
+                margin-top: 10px;
+            }
+            :host(*[type = 'current-orth']) #toolbar {
+                width: 50px;
+            }
+            :host(*[type = 'current-orth']) #toolbar button {
+                display: inline-block;
+            }            
+        </style>
+        <div id="content">
+            <div>
+                <slot name="t-orth"></slot><slot name="t-gramgrp"></slot>
+            </div>
+            <div id="toolbar">
+                <button id="add-form-button" class="fa-button" title="Adăugare cuvânt-titlu">&#xf067;</button>
+                <button id="delete-form-button" class="fa-button" title="Ștergere cuvânt-titlu">&#xf2ed;</button>        
+            </div>
+        </div>
     `
 ;
 teian.frameworkDefinition["t-orth-template"] = 
@@ -911,6 +957,9 @@ teian.frameworkDefinition["t-orth-template"] =
                 width: 350px;
                 display: inline-block;
             }
+            :host(:not(*[n])) #orth-mini-editor {
+                border-radius: 5px 0 0 5px;
+            }            
             :host(:not(*[n])) #n-control {
                 display: none;
             }             
@@ -919,6 +968,13 @@ teian.frameworkDefinition["t-orth-template"] =
                 padding: 3px;
                 border: 1px solid black;
             }
+            #orth-mini-editor {
+                width: 300px;
+                border-radius: 5px 0 0 0;
+            }
+            #n-control {
+                width: 50px;
+            }             
             ${soliromUtils.awesomeButtonStyle}
             sic {
                 background-color: orange;
@@ -928,6 +984,7 @@ teian.frameworkDefinition["t-orth-template"] =
         <div id="n-control" contenteditable="true" data-ref="@n" title="Nr. ordine omonim"></div>
     `
 ;
+//<button id="add-current-orth-button" class="fa-button" title="Adăugare formă ortografică actuală">&#xf067;</button>
 teian.frameworkDefinition["t-gramgrp-template"] = 
     `
         <style>
@@ -935,6 +992,8 @@ teian.frameworkDefinition["t-gramgrp-template"] =
                 background-color: white;
                 padding: 3px;
                 border: 1px solid black;
+                width: 300px;
+                border-radius: 0 0 0 5px;                
             }
             sic {
                 background-color: orange;
